@@ -1,0 +1,56 @@
+\section{Project Overview}
+\label{sec:project-overview}
+
+\subsection{Motivation}
+\label{sec:motivation}
+
+Graph Neural Networks (GNNs) are neural networks designed to operate on data represented as graphs. Unlike data represented as a regular grid or sequence, graphs describe both individual entries, called nodes, and the relationship between them, called edges. GNNs can use these relationships when learning representations of the nodes or of the graph as a whole, making them useful for problems involving highly connected data such as social networks, recommendation systems, and molecular structures.
+
+However, the same graph structure that makes GNNs useful also creates challenges for efficient GPU execution. Unlike the regular structure of many dense neural network operations, graphs can be highly sparse and irregular, with different nodes having vastly different numbers of connections. As a result, the amount and pattern of computation required for each node can vary significantly across a graph. This makes it more difficult to distribute work evenly across the highly parallel hardware of a GPU.
+
+For many GNN workloads, the structure of the graph is known before execution and remains unchanged across repeated runs. This allows structural analysis to be performed once and reused. Knowledge gained from this analysis could then be used to make more informed GPU execution decisions across subsequent runs.
+
+\subsection{Problem Statement}
+\label{sec:problem-statement}
+
+The computational workload of a GNN is influenced not only by the model itself, but also by the structure of the graph it operates on. Since GNNs perform computation based on the connections between nodes, changing these connections changes how work is distributed throughout the computation. This means that two graphs running the exact same GNN can create very different computational workloads.
+
+Imagine two graphs, A and B, both have 1,000,000 edges.
+
+\begin{itemize}
+  \item Graph A might be relatively balanced, with most nodes having 10--20 neighbors.
+  \item Graph B might be heavily skewed, with most nodes having 1--5 neighbors but a few nodes having thousands of neighbors.
+\end{itemize}
+
+In this situation, the GNN itself has not changed, but the pattern of work on the GPU has. The efficiency of any GNN operation depends not only on the model itself, but also on the topology of the input graph it operates on. These different input characteristics propagate into different execution characteristics, and directly affect the performance of the system. This may mean different execution strategies are appropriate, but this has not been established experimentally yet.
+
+When running a PyTorch model with \texttt{torch.compile}, PyTorch captures computation from the program and passes it through the compilation stack, with TorchInductor being the default compiler backend. TorchInductor is a general purpose compiler backend which is designed to operate on a wide range of PyTorch workloads, as opposed to optimize specific systems. In this instance, the structure of a particular static input graph is known ahead of time and can be analyzed before the repeated execution. Therefore, it is worth investigating whether explicitly incorporating graph-specific information can improve GPU execution.
+
+\subsection{Core Hypothesis}
+\label{sec:core-hypothesis}
+
+We hypothesize that structural properties of a static input graph can provide useful information for optimizing the execution of GNN workloads on GPUs. Additionally, different graph structures may benefit from different execution decisions, meaning a single execution strategy may not be optimal across all graphs. By analyzing graph topology prior to execution, it may be possible to select or generate execution strategies better suited to the characteristics of a particular graph.
+
+\subsection{Project Goal}
+\label{sec:project-goal}
+
+The primary goal of this project is to determine whether structural information about a static graph can be used to improve the GPU execution of GNN workloads relative to existing TorchInductor compilation.
+
+To achieve this, the project will first establish reproducible PyTorch Geometric and \texttt{torch.compile} / TorchInductor baselines. GNN workloads will then be profiled across graphs with different structural characteristics to identify performance bottlenecks and determine how changes in graph topology affect GPU execution. Both synthetic graphs with controlled structural properties and real-world graph datasets will be used for this analysis.
+
+Based on the results of profiling, the project will develop and evaluate specialized GPU execution strategies for selected GNN operations. Initial implementations will use Triton when appropriate, while CUDA/C++ may be explored when profiling indicates that lower-level control could be beneficial. The specific operations and optimization strategies targeted will be determined by experimental evidence rather than assumed beforehand.
+
+This project will also investigate whether characteristics of the input graph can be used to automatically determine whether a specialized execution strategy should be applied. Successful optimizations will then be integrated with the existing PyTorch compilation infrastructure where feasible, allowing specialized implementations to handle supported GNN operations while leaving general computation to TorchInductor.
+
+All approaches will be evaluated against the TorchInductor baseline. Evaluation will consider numerical correctness, isolated kernel performance, end-to-end latency and throughput, and the overhead introduced by graph analysis, preprocessing, or specialization. The objective is to not only determine whether graph-aware specialization can improve performance, but also to identify when, why, and under what graph characteristics those improvements occur.
+
+\subsection{Scope and Non-Goals}
+\label{sec:scope-non-goals}
+
+The initial scope of this project focuses on the execution of GNN workloads on static graphs, where the graph topology is known before execution and remains unchanged across repeated runs. The project will primarily investigate inference workloads using PyTorch Geometric and \texttt{torch.compile} / TorchInductor on NVIDIA GPUs. Profiling will be used to identify specific operations and workloads for optimization, which will then be evaluated using both synthetic graphs with controlled structural properties and real-world graph datasets.
+
+The project will investigate specialized GNN execution strategies that make use of structural information about the input graph. Where successful, these strategies may be integrated with the existing PyTorch compilation infrastructure. The project is intended to complement TorchInductor rather than replace it, with general PyTorch computation continuing to be handled by the existing compiler stack.
+
+The initial project does not aim to support every GNN architecture, graph operation, or PyTorch Geometric workload. Dynamic graphs, distributed or multi-GPU execution, and optimization of GNN training are outside the initial scope and may be considered as future work. The project also does not aim to develop new GNN architectures or learning algorithms, as its focus is on systems-level execution and performance.
+
+Finally, outperforming TorchInductor across all workloads is not a requirement for project success. An important objective is to determine whether, when, and why graph-aware specialization is beneficial. Cases where specialization provides little or no improvement are therefore also useful experimental results.

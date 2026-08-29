@@ -1,0 +1,125 @@
+\documentclass[11pt,letterpaper]{article}
+
+% ---------------------------------------------------------------------------
+% Page geometry
+% ---------------------------------------------------------------------------
+\usepackage[letterpaper,margin=1.25in,headheight=14pt]{geometry}
+
+% ---------------------------------------------------------------------------
+% Typography and language
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{parskip}
+
+% ---------------------------------------------------------------------------
+% Mathematics
+% ---------------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% ---------------------------------------------------------------------------
+% Figures and tables
+% ---------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{caption}
+\graphicspath{{figures/}}
+
+% ---------------------------------------------------------------------------
+% Code listings
+% ---------------------------------------------------------------------------
+\usepackage{listings}
+
+% ---------------------------------------------------------------------------
+% Bibliography
+% ---------------------------------------------------------------------------
+\usepackage{csquotes}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+% ---------------------------------------------------------------------------
+% Cross-references and hyperlinks (load late, before cleveref)
+% ---------------------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+% ---------------------------------------------------------------------------
+% Headers and footers
+% ---------------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{GNN Technical Specification}
+\fancyhead[R]{UWHPC}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ---------------------------------------------------------------------------
+% Document metadata
+% ---------------------------------------------------------------------------
+\title{GNN Technical Specification}
+\author{James Redekopp \and Karl Keshavarzi}
+\date{Working Draft}
+
+\hypersetup{
+  pdftitle={GNN Technical Specification},
+  pdfauthor={James Redekopp, Karl Keshavarzi},
+  pdfsubject={Topology-Aware GPU Execution of Graph Neural Networks},
+}
+
+\begin{document}
+
+% ---------------------------------------------------------------------------
+% Title page
+% ---------------------------------------------------------------------------
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+
+  {\Huge\bfseries GNN Technical Specification\par}
+  \vspace{1cm}
+  {\Large Topology-Aware GPU Execution of Graph Neural Networks\par}
+
+  \vspace{3cm}
+  {\large Project Leads: James Redekopp, Karl Keshavarzi\par}
+  \vspace{0.5cm}
+  {\large UW High Performance Computing (UWHPC)\par}
+
+  \vfill
+
+  {\large\itshape Working Draft\par}
+  \vspace{0.5cm}
+  {\large \today\par}
+
+\end{titlepage}
+
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+
+% ---------------------------------------------------------------------------
+% Content
+% ---------------------------------------------------------------------------
+\input{sections/overview.tex}
+\input{sections/background.tex}
+
+% ---------------------------------------------------------------------------
+% Bibliography
+% ---------------------------------------------------------------------------
+\printbibliography
+
+\end{document}
