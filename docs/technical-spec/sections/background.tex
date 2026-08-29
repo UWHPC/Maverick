@@ -1,11 +1,180 @@
 \section{Technical Background}
 \label{sec:technical-background}
 
-% The subsections below are placeholders carried over from the source
-% document outline. Content is pending and intentionally left unwritten.
-
 \subsection{Graphs and Graph Representations}
 \label{sec:graphs-and-representations}
+
+A graph is a mathematical structure used to represent a collection of entities
+and the relationships between them. Formally, a graph is defined as
+
+\begin{equation}
+  G = (V, E),
+  \label{eq:graph-definition}
+\end{equation}
+
+where $V$ is a set of vertices, or nodes, and $E$ is a set of edges connecting
+those nodes. The notation $|V|$ and $|E|$ denote the number of nodes and edges,
+respectively. In a directed graph, an edge $(u,v) \in E$ has a source $u$ and a
+destination $v$; in an undirected graph, the relationship is symmetric. A node
+feature vector $\mathbf{x}_v \in \mathbb{R}^{F}$ is a list of $F$ numerical
+values describing node $v$. An edge feature vector
+$\mathbf{e}_{u,v} \in \mathbb{R}^{D}$ similarly contains $D$ values describing
+an edge. These features contain the data on which a GNN operates, while the
+edges determine which nodes can exchange information.
+
+For a directed graph, the incoming neighborhood of a node $v$ is
+
+\begin{equation}
+  \mathcal{N}(v) = \{u \in V \mid (u,v) \in E\},
+  \label{eq:incoming-neighborhood}
+\end{equation}
+
+and its in-degree is $\deg^{-}(v)=|\mathcal{N}(v)|$. For example, if
+$\mathcal{N}(v)=\{a,b,c\}$, then $v$ has three incoming neighbors and
+$\deg^{-}(v)=3$. The analogous definitions using edges $(v,u)$ give the
+outgoing neighborhood and out-degree. For an undirected graph these
+distinctions disappear, and the degree is simply
+$\deg(v)=|\mathcal{N}(v)|$. The degree distribution describes how node degrees
+vary across the graph. A graph in which degrees vary widely is
+degree-skewed: many nodes may have only a few neighbors while a small number of
+nodes have hundreds or thousands. Degree distribution therefore captures
+structural information that is not conveyed by $|V|$ and $|E|$ alone.
+
+Throughout this document, \emph{graph topology} refers to the pattern of
+connectivity between nodes. Graph size and topology are related but distinct.
+Two graphs $G_1$ and $G_2$ can satisfy
+
+\begin{equation}
+  |V_1| = |V_2| \quad\text{and}\quad |E_1| = |E_2|
+  \label{eq:same-size-different-topology}
+\end{equation}
+
+while having very different neighborhoods, degree distributions, and local
+connectivity patterns. Consequently, equal-sized graphs need not induce the
+same pattern of computation in a GNN.
+
+One common mathematical representation of a graph is its adjacency matrix
+$A \in \{0,1\}^{|V|\times|V|}$, defined for an unweighted graph by
+
+\begin{equation}
+  A_{ij} =
+  \begin{cases}
+    1, & \text{if } (i,j) \in E, \\
+    0, & \text{otherwise}.
+  \end{cases}
+  \label{eq:adjacency-matrix}
+\end{equation}
+
+Because $A$ has one row and one column for every node, its dimensions are
+$|V|\times|V|$ and it contains $|V|^2$ entries. This representation makes graph
+operations convenient to express using linear algebra. Explicitly storing every
+entry is wasteful, however, when $|E| \ll |V|^2$, meaning that the graph has far
+fewer edges than entries in its dense adjacency matrix. Sparse graphs are
+therefore commonly stored using only the edges that exist, in a representation
+such as coordinate format (COO) or compressed sparse row
+(CSR)~\cite{pytorchSparseDocs}.
+
+COO stores one source index and one destination index for every edge. In the
+unweighted case, this requires two index arrays of length $|E|$; an additional
+array stores values when edges are weighted. PyTorch Geometric commonly stacks
+the source and destination arrays into an integer tensor called
+$\texttt{edge\_index}$ with shape $2\times|E|$. Its first row contains source
+indices and its second row contains destination indices~\cite{pygEdgeIndex}.
+COO is simple to construct, reorder, and process edge-by-edge.
+
+CSR instead groups entries by matrix row. It stores a row-pointer array of
+length $|V|+1$ and a column-index array of length $|E|$, with optional edge
+values. Under the source-row convention used here, the entries from
+$\texttt{row\_ptr}[i]$ up to, but not including,
+$\texttt{row\_ptr}[i+1]$ identify the out-neighbors of node $i$. This layout
+removes the repeated row index and makes traversal of each stored row direct. If
+destinations were used as rows instead, each row would list incoming neighbors;
+either convention represents the same directed graph when used consistently.
+Ignoring optional edge values, the storage requirements are summarized by
+
+\begin{equation}
+  \text{dense: }O(|V|^2), \qquad
+  \text{COO: }O(|E|), \qquad
+  \text{CSR: }O(|V|+|E|).
+  \label{eq:graph-storage-complexity}
+\end{equation}
+
+Here, Big-O notation describes how storage grows with graph size, not how long
+an operation takes. Constant factors, such as COO storing two index arrays, are
+omitted.
+
+For example, consider a directed graph with
+
+\[
+  V=\{0,1,2,3\}, \qquad
+  E=\{(0,1),(0,3),(1,2),(2,0),(2,3)\}.
+\]
+
+\noindent\begin{minipage}{\linewidth}
+Using source nodes as rows, the diagram and adjacency matrix below represent
+the same topology.
+
+\begin{center}
+  \begin{minipage}[c]{0.38\linewidth}
+    \centering
+    \begin{tikzpicture}[
+      >=Stealth,
+      every node/.style={circle,draw,minimum size=7mm,inner sep=0pt},
+      every edge/.style={draw,->,thick,shorten >=2pt,shorten <=2pt}
+    ]
+      \node (n0) at (0,1.6) {0};
+      \node (n1) at (2.2,1.6) {1};
+      \node (n2) at (2.2,0) {2};
+      \node (n3) at (0,0) {3};
+
+      \path (n0) edge (n1)
+            (n0) edge (n3)
+            (n1) edge (n2)
+            (n2) edge (n0)
+            (n2) edge (n3);
+    \end{tikzpicture}
+
+    \small Directed graph
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.56\linewidth}
+    \begin{equation}
+      A =
+      \begin{bmatrix}
+        0 & 1 & 0 & 1 \\
+        0 & 0 & 1 & 0 \\
+        1 & 0 & 0 & 1 \\
+        0 & 0 & 0 & 0
+      \end{bmatrix},
+      \label{eq:example-adjacency}
+    \end{equation}
+  \end{minipage}
+\end{center}
+\end{minipage}
+
+\noindent\begin{minipage}{\linewidth}
+with the corresponding sparse index arrays
+
+\begin{align*}
+  \text{COO source}      &= [0,0,1,2,2], \\
+  \text{COO destination} &= [1,3,2,0,3], \\
+  \text{CSR row pointer} &= [0,2,3,5,5], \\
+  \text{CSR column index} &= [1,3,2,0,3].
+\end{align*}
+\end{minipage}
+
+Using zero-based indexing, $\texttt{row\_ptr}[2]=3$ and
+$\texttt{row\_ptr}[3]=5$, so the out-neighbors of node $2$ are stored at
+positions $3$ and $4$ of the CSR column-index array. Those entries are $0$ and
+$3$, corresponding to the edges $(2,0)$ and $(2,3)$.
+
+Topology describes which connections exist; representation describes how
+those connections are stored. The two should not be conflated. A topology can
+be encoded in several layouts, and a layout can be reordered without changing
+the underlying graph. Both the structure and its representation can influence
+how later GNN operations access data, so the distinction will be important in
+the performance analysis described by this specification.
+
 
 \subsection{Graph Neural Networks}
 \label{sec:gnns}
