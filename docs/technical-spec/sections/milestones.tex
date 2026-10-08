@@ -1,0 +1,34 @@
+\section{Project Milestones}
+\label{sec:project-milestones}
+
+The project will proceed through milestones with concrete outputs. Later design decisions will depend on the evidence produced by earlier stages.
+
+\subsection{Milestone 1: Reproducible Baselines}
+
+Establish a small set of inference workloads that run on the available GPU. Record their model and graph configurations, reference outputs, and execution times under PyTorch Geometric and TorchInductor.
+
+This milestone is complete when the workloads can be rerun consistently and any compilation limitations are documented.
+
+\subsection{Milestone 2: Topology and Performance Study}
+
+Construct controlled graph comparisons and select real-world datasets. Profile the baseline workloads to determine where execution time is spent and how that behavior varies with connectivity.
+
+The deliverable will be a concise analysis identifying a supported optimization target. If the initial workloads reveal no actionable topology effect, the analysis will guide a justified change in workload or target.
+
+\subsection{Milestone 3: Specialized Implementation}
+
+Implement one focused execution strategy for the selected operation. Verify its numerical correctness and measure its isolated performance against the corresponding baseline operation.
+
+The deliverable will include the implementation, its supported input conditions, and an explanation of the performance results.
+
+\subsection{Milestone 4: Complete Workload Evaluation}
+
+Apply the specialized operation within a complete inference workload. Measure its effect on total latency, including preparation costs and additional memory use.
+
+Investigate a simple rule for selecting between the candidate and baseline using graph characteristics and workload dimensions. Where feasible, connect this selection to the existing PyTorch execution or compilation path.
+
+\subsection{Milestone 5: Final Analysis and Documentation}
+
+Consolidate the measurements and document the conditions under which specialization is useful. Report unsupported cases and remaining limitations.
+
+The final deliverable will include reproducible evaluation instructions and a report assessing the project's core hypothesis. Conclusions will distinguish demonstrated results from proposed extensions.

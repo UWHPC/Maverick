@@ -1,0 +1,30 @@
+\section{Proposed Approach}
+\label{sec:proposed-approach}
+
+The project will investigate topology-aware GNN execution through a sequence of baseline measurements and targeted experiments. The initial objective is to identify where graph structure affects execution performance and whether that information can guide a useful optimization. Specific kernel designs and compiler integration mechanisms will be chosen after profiling.
+
+\subsection{Establishing Baselines}
+
+The first stage will establish reproducible inference workloads using PyTorch Geometric. Each workload will specify its model configuration, input graph, feature dimensions, and numerical data type. Model parameters will remain fixed during inference.
+
+The workloads will be evaluated using ordinary PyTorch Geometric execution and compilation through \texttt{torch.compile} with TorchInductor. The compiled configuration will serve as the primary performance baseline. Compilation failures or graph breaks, where execution leaves the captured computation and returns to ordinary execution, will be recorded so that comparisons describe what actually ran.
+
+The initial workload set will remain small enough to investigate thoroughly. It will include representative neighborhood aggregation and dense feature transformation, with the precise models selected according to compatibility with the available software and hardware.
+
+\subsection{Investigating Topology Effects}
+
+The project will profile these workloads across graphs with different structural characteristics. Synthetic graphs will allow selected properties to vary under controlled conditions. Real-world graphs will provide examples in which several structural properties occur together.
+
+Where possible, comparisons will hold node count, edge count, and feature dimensions constant while varying connectivity. This will help distinguish effects associated with topology from those caused simply by increasing the amount of data.
+
+Profiling will determine which operations account for substantial execution time and how their behavior changes across graphs. Relevant observations may include uneven work distribution, repeated feature accesses, or contention during aggregation. These observations will guide the choice of optimization target.
+
+\subsection{Developing and Applying Specialization}
+
+After identifying a measurable bottleneck, the project will implement a focused alternative for a supported operation. Candidate approaches may include a different sparse layout, a different assignment of work to threads, or combining operations to reduce intermediate memory traffic. These are possibilities to investigate rather than predetermined requirements.
+
+Specialized GPU implementations will use Triton where appropriate. CUDA/C++ may be considered if the selected operation requires control that is difficult to express effectively in Triton.
+
+Each candidate will first be tested independently, then evaluated within a complete inference workload. Graph analysis and preprocessing will be measured separately from repeated execution.
+
+The project will also investigate whether observable graph characteristics can predict when a candidate is beneficial. A simple selection rule may be sufficient initially. Where practical, successful implementations will be connected to the existing PyTorch execution or compilation path, with the baseline retained for unsupported cases.

@@ -1,0 +1,50 @@
+\section{Evaluation}
+\label{sec:evaluation}
+
+Evaluation will determine whether a specialized implementation preserves the intended computation and provides a useful performance benefit. Measurements will include the cost of preparing the graph as well as the time required for repeated inference.
+
+\subsection{Numerical Correctness}
+
+Each specialized operation will be compared against a reference implementation using the same inputs and model parameters. Complete inference outputs will also be compared after the operation is incorporated into a model.
+
+Floating-point reductions can produce different results when their evaluation order changes. Comparisons will therefore use documented absolute and relative tolerances appropriate to the data type and operation. An elementwise comparison can be expressed as
+
+\[
+  |y_{\mathrm{candidate}}-y_{\mathrm{reference}}|
+  \leq \varepsilon_{\mathrm{abs}}
+  + \varepsilon_{\mathrm{rel}}|y_{\mathrm{reference}}|,
+\]
+
+where $\varepsilon_{\mathrm{abs}}$ and $\varepsilon_{\mathrm{rel}}$ are the chosen tolerances. Nonfinite values will be checked explicitly.
+
+Tests will cover supported boundary cases, including isolated nodes and highly uneven neighborhoods. Any assumptions about self-loops, duplicate edges, or edge weights will be stated so that the reference and candidate compute the same operation.
+
+\subsection{Performance Measurement}
+
+Measurements will report isolated operation latency and complete inference latency. Kernel-level results will help explain an optimization, while complete inference measurements will establish its practical effect.
+
+GPU execution is asynchronous, so timing must account for when device work actually completes. Measurements will use device timing events or explicit synchronization as appropriate. Warm-up runs will precede timed measurements, and repeated trials will be summarized using a stated statistic and a measure of variability.
+
+The hardware and software configuration will be recorded, together with the workload dimensions and execution settings. Compilation time will be reported separately from steady-state execution. Host-to-device transfers will either be included consistently or excluded explicitly.
+
+For a baseline execution time $T_{\mathrm{base}}$ and candidate execution time $T_{\mathrm{candidate}}$, speedup is
+
+\[
+  \operatorname{Speedup}=\frac{T_{\mathrm{base}}}{T_{\mathrm{candidate}}}.
+\]
+
+A value greater than one indicates an improvement. Results will include regressions as well as improvements, rather than reporting only favorable workloads.
+
+\subsection{Preprocessing and Reuse}
+
+Topology analysis, layout conversion, and other preparation steps introduce costs that must be recovered through subsequent execution savings. Evaluation will report these costs and any additional memory required by the prepared representation.
+
+For repeated inference, total time will be evaluated as a function of the number of runs. Where the baseline also performs reusable preparation, that cost will be included in the same way. This will show whether a specialization is useful only after substantial reuse or also benefits shorter workloads.
+
+\subsection{Interpreting Results}
+
+Results will be examined alongside graph characteristics and feature dimensions. The objective is to explain where a strategy works and identify the conditions under which it stops being beneficial.
+
+Where several changes contribute to an implementation, comparisons will separate their effects when practical. For example, a new layout will be evaluated independently of a new work assignment where the implementation permits it.
+
+Project success does not require improvement on every workload. A reproducible demonstration that topology information helps select an effective strategy would support the core hypothesis. Evidence that a proposed strategy provides little benefit, together with an explanation of the limiting factors, is also a useful outcome.
