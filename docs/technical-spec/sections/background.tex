@@ -53,8 +53,9 @@ while having very different neighborhoods, degree distributions, and local
 connectivity patterns. Consequently, equal-sized graphs need not induce the
 same pattern of computation in a GNN.
 
-One common mathematical representation of a graph is its adjacency matrix
-$A \in \{0,1\}^{|V|\times|V|}$, defined for an unweighted graph by
+For an unweighted graph, the adjacency matrix
+$A \in \{0,1\}^{|V|\times|V|}$ records which edges exist. Row $i$
+represents the source node, and column $j$ represents the destination node:
 
 \begin{equation}
   A_{ij} =
@@ -297,7 +298,7 @@ For example, a simple update is
     + \mathbf{b}^{(\ell)}\right).
 \]
 
-Here, vectors are treated as column vectors. If the input width is $F_\ell$ and the output width is $F_{\ell+1}$, both weight matrices have shape $F_{\ell+1}\times F_\ell$, and the bias vector has length $F_{\ell+1}$. The matrices and bias are learned during training and remain fixed during inference.
+Here, vectors are treated as column vectors. In this example, each message and its aggregate have width $F_\ell$. Both weight matrices therefore have shape $F_{\ell+1}\times F_\ell$, and the bias vector has length $F_{\ell+1}$. The matrices and bias are learned during training and remain fixed during inference.
 
 This example gives the node's own features a separate contribution. Another common approach adds self-loops to the graph so that each node contributes a message to itself. These choices are part of the model definition and must be preserved during optimization.
 
@@ -327,6 +328,28 @@ Using source representations as messages and sum aggregation, node $3$ receives 
   \mathbf{a}_3=\mathbf{h}_0+\mathbf{h}_2
   =\begin{bmatrix}3\\6\end{bmatrix}.
 \]
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    >=Stealth,
+    box/.style={draw,rounded corners,align=center,inner sep=5pt},
+    flow/.style={->,thick}
+  ]
+    \node[box] (h0) at (0,1.3) {Node $0$\\$\mathbf{h}_0=[1,2]^{\mathsf T}$};
+    \node[box] (h2) at (0,-1.3) {Node $2$\\$\mathbf{h}_2=[2,4]^{\mathsf T}$};
+    \node[box] (aggregate) at (4,0) {Sum incoming messages\\$\mathbf{a}_3=[3,6]^{\mathsf T}$};
+    \node[box] (h3) at (6.5,-1.6) {Node $3$\\$\mathbf{h}_3=[0,1]^{\mathsf T}$};
+    \node[box] (update) at (9,0) {Update node $3$\\$U(\mathbf{h}_3,\mathbf{a}_3)$};
+
+    \draw[flow] (h0.east) -- (aggregate.north west);
+    \draw[flow] (h2.east) -- (aggregate.south west);
+    \draw[flow] (aggregate.east) -- (update.west);
+    \draw[flow] (h3.east) -| (update.south);
+  \end{tikzpicture}
+  \caption{Messages from nodes $0$ and $2$ are summed for node $3$. Node $3$'s own representation enters the update separately.}
+  \label{fig:message-passing-example}
+\end{figure}
 
 The other aggregates are
 
@@ -461,6 +484,8 @@ When $T_{\mathrm{specialized}}<T_{\mathrm{base}}$, this gives
   {T_{\mathrm{base}}-T_{\mathrm{specialized}}}.
 \]
 
+The denominator is the time saved on each run. The specialization becomes worthwhile once those repeated savings exceed its one-time setup cost.
+
 Evaluation must therefore measure both execution performance and the one-time cost of preparing a specialized strategy.
 
 \subsection{Sparse and Irregular Computation}
@@ -472,10 +497,10 @@ In GNN computation, the connectivity can be sparse while the node feature matrix
 
 \subsubsection{Uneven Work Distribution}
 
-For incoming-neighbor aggregation, the number of contributions to node $v$ is its in-degree,
+For incoming-neighbor aggregation, let $d_v$ denote the number of contributions to node $v$, which is its in-degree:
 
 \[
-  d_v=|\mathcal{N}(v)|.
+  d_v=\deg^{-}(v)=|\mathcal{N}(v)|.
 \]
 
 If each contribution contains $F$ feature elements, straightforward aggregation performs work proportional to
@@ -486,7 +511,7 @@ If each contribution contains $F$ feature elements, straightforward aggregation 
 
 for that node. Summed over the graph, the contribution-processing work is proportional to $|E|F$, but this total does not describe how evenly the work is distributed.
 
-The average in-degree is
+Since each directed edge contributes to one destination, the average in-degree is
 
 \[
   \overline{d}=\frac{|E|}{|V|}.
