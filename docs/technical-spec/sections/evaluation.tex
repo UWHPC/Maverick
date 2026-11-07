@@ -21,7 +21,7 @@ Tests will cover supported boundary cases, including isolated nodes and highly u
 
 \subsection{Performance Measurement}
 
-Measurements will report the time taken by individual operations, the time taken by complete inference, and throughput over repeated runs. Operation timings help explain an optimization; complete inference measurements show its effect on the workload as a whole.
+Measurements will report the time taken by individual operations and complete inference, plus throughput measured as completed inference runs per second. Operation timings help explain an optimization; complete inference measurements show its effect on the workload as a whole.
 
 GPU work can continue after the CPU call returns, so a CPU timer alone may stop too early. Measurements will use GPU timing events or wait for GPU work to finish before stopping the timer. Warm-up runs will keep first-use effects out of steady-state timings, and repeated trials will be summarized using a stated statistic and a measure of variability.
 

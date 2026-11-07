@@ -5,7 +5,7 @@ The project will proceed through milestones with concrete outputs. Later design 
 
 \subsection{Milestone 1: Reproducible Baselines}
 
-Establish a small set of inference workloads that run on the available GPU. Record their model and graph configurations, reference outputs, and execution times under PyTorch Geometric and TorchInductor.
+Establish a small set of inference workloads that run on the available GPU. Record each workload's model and graph configuration, reference output, and execution time with standard \texttt{torch.compile} and TorchInductor. Measure uncompiled PyTorch Geometric execution for context.
 
 This milestone is complete when the workloads can be rerun consistently and any compilation limitations are documented.
 
@@ -13,7 +13,7 @@ This milestone is complete when the workloads can be rerun consistently and any 
 
 Construct controlled graph comparisons and select real-world datasets. Profile the baseline workloads to determine where execution time is spent and how that behavior varies with connectivity.
 
-The deliverable will be a concise analysis identifying a supported optimization target. If the initial workloads reveal no actionable topology effect, the analysis will guide a justified change in workload or target.
+The deliverable will be a short analysis identifying a GNN operation to optimize and the graph characteristics associated with its cost. If the initial workloads reveal no actionable topology effect, the analysis will guide a justified change in workload or target.
 
 \subsection{Milestone 3: Specialized Implementation}
 
@@ -23,9 +23,9 @@ The deliverable will include the implementation, its supported input conditions,
 
 \subsection{Milestone 4: Complete Workload Evaluation}
 
-Apply the specialized operation within a complete inference workload. Measure its effect on total latency, including preparation costs and additional memory use.
+Run the specialized operation within a complete GNN inference workload. Compare latency and throughput with standard \texttt{torch.compile}, and report one-time preparation costs and additional memory use.
 
-Investigate a simple rule for selecting between the candidate and baseline using graph characteristics and workload dimensions. Where feasible, connect this selection to the existing PyTorch execution or compilation path.
+Test whether graph characteristics and workload dimensions can guide a choice between specialized and TorchInductor execution. Investigate how to make that choice within the \texttt{torch.compile} workflow.
 
 \subsection{Milestone 5: Final Analysis and Documentation}
 
