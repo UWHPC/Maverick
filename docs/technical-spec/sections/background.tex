@@ -13,7 +13,7 @@ and the relationships between them. Formally, a graph is defined as
 \end{equation}
 
 where $V$ is a set of vertices, or nodes, and $E$ is a set of edges connecting
-those nodes. The notation $|V|$ and $|E|$ denote the number of nodes and edges,
+those nodes. The symbols $|V|$ and $|E|$ denote the number of nodes and edges,
 respectively. In a directed graph, an edge $(u,v) \in E$ has a source $u$ and a
 destination $v$; in an undirected graph, the relationship is symmetric. A node
 feature vector $\mathbf{x}_v \in \mathbb{R}^{F}$ is a list of $F$ numerical
@@ -80,7 +80,7 @@ array stores values when edges are weighted. PyTorch Geometric commonly stacks
 the source and destination arrays into an integer tensor called
 $\texttt{edge\_index}$ with shape $2\times|E|$. Its first row contains source
 indices and its second row contains destination indices~\cite{pygEdgeIndex}.
-COO is simple to construct, reorder, and process edge-by-edge.
+COO is easy to construct and lets an implementation process edges one at a time.
 
 CSR instead groups entries by matrix row. It stores a row-pointer array of
 length $|V|+1$ and a column-index array of length $|E|$, with optional edge
@@ -111,8 +111,8 @@ For example, consider a directed graph with
 \]
 
 \noindent\begin{minipage}{\linewidth}
-Using source nodes as rows, the diagram and adjacency matrix below represent
-the same topology.
+The diagram and adjacency matrix below represent the same graph. In the matrix,
+each row corresponds to a source node.
 
 \begin{center}
   \begin{minipage}[c]{0.38\linewidth}
@@ -153,7 +153,7 @@ the same topology.
 \end{minipage}
 
 \noindent\begin{minipage}{\linewidth}
-with the corresponding sparse index arrays
+The corresponding sparse index arrays are
 
 \begin{align*}
   \text{COO source}      &= [0,0,1,2,2], \\
@@ -169,21 +169,18 @@ positions $3$ and $4$ of the CSR column-index array. Those entries are $0$ and
 $3$, corresponding to the edges $(2,0)$ and $(2,3)$.
 
 Topology describes which connections exist; representation describes how
-those connections are stored. The two should not be conflated. A topology can
-be encoded in several layouts, and a layout can be reordered without changing
-the underlying graph. Both the structure and its representation can influence
-how later GNN operations access data, so the distinction will be important in
-the performance analysis described by this specification.
+those connections are stored. The same graph can use different storage layouts,
+and those layouts can change how a GNN accesses data.
 
 
 \subsection{Graph Neural Networks}
 \label{sec:gnns}
 
-A Graph Neural Network (GNN) is a model that computes predictions from graph-structured data. Each node has a feature vector containing numerical attributes, while edges specify relationships between nodes. A GNN uses these connections to combine information from neighboring nodes rather than processing each node independently.
+A Graph Neural Network (GNN) learns from a graph whose nodes represent entities and whose edges represent relationships between them. Node features describe the entities, while edge features, when present, describe the relationships. A GNN uses these connections and features to combine information from neighboring nodes and make predictions.
 
 For example, in a citation graph, nodes represent papers and directed edges represent citations. A paper's feature vector might describe its content. To predict the paper's subject, a GNN can use both its own features and information from connected papers. The graph therefore determines which data contributes to each prediction.
 
-The term \emph{neural network} refers to a sequence of parameterized transformations. These transformations commonly include matrix multiplication and elementwise nonlinear functions. Their parameters, such as matrix entries called \emph{weights}, are adjusted during training to improve predictions on example data. During inference, the parameters remain fixed and the model applies the learned transformations to its inputs. This project focuses on inference.
+A neural network applies learned operations, such as matrix multiplication, to its inputs. During training, it adjusts parameters called \emph{weights} to improve predictions. During inference, it uses those fixed weights to make predictions. This project focuses on inference.
 
 \subsubsection{Node Features and Representations}
 
@@ -193,7 +190,7 @@ For a graph $G=(V,E)$, let each node $v$ have a feature vector $\mathbf{x}_v\in\
   X\in\mathbb{R}^{|V|\times F}.
 \]
 
-A GNN transforms these input features into new vectors called \emph{node representations}. A representation is an intermediate numerical description of a node, computed to support the prediction task. It need not have the same width as the input feature vector.
+A GNN transforms input features into intermediate vectors called \emph{node representations}. These vectors support the prediction task and may have a different width from the input features.
 
 Let $\mathbf{h}_v^{(\ell)}$ denote the representation of node $v$ after layer $\ell$. A layer is one stage of the model's computation, and the initial representation is simply the input:
 
@@ -223,17 +220,15 @@ These nonlinear functions allow stacked layers to express relationships that a s
 
 A GNN layer often combines graph-directed data access and reduction with dense numerical computation. The graph determines which rows of the feature matrix are accessed and combined. Learned transformations operate on the resulting vectors, often through matrix multiplication. The exact order and form of these operations depend on the architecture.
 
-Stacking layers extends how far information can travel. If each layer uses immediate incoming neighbors, one layer allows a node to receive information from nodes one edge away. Two layers allow information to arrive along paths of two edges. After $L$ layers, a node's representation can depend on nodes within $L$ incoming hops. This region is called its \emph{receptive field}.
+Each layer gathers information from immediate neighbors. Stacking layers lets information from more distant nodes influence a prediction.
 
-\subsubsection{Predictions and Execution Workloads}
+\subsubsection{Predictions and Static Topology}
 
 The final representations are used to compute predictions. For node classification, the model produces a score for each possible category at each node. In the citation example, these categories could be paper subjects. For graph-level prediction, the model first combines node representations into a single vector describing the graph, then computes an output from that vector.
 
-Node identifiers serve as indices rather than meaningful input values. Renumbering nodes consistently should correspondingly renumber node-level outputs without otherwise changing their meaning. Similarly, a graph-level output should not depend on the order in which nodes are stored. Implementations must preserve these mathematical properties, allowing for floating-point differences caused by changes in reduction order.
+Node numbers are labels, not features. If nodes are renumbered consistently, node predictions should follow the new numbering, while a prediction for the whole graph should stay the same. Small floating-point differences can occur if renumbering changes the order of aggregation.
 
 For this project, the important distinction is between model parameters, feature values, and graph topology. Parameters specify the learned transformations. Features supply the numerical input. Topology determines which nodes exchange information. A static topology can therefore be reused across inference runs even when feature values change.
-
-The same GNN can create different execution workloads on different graphs. A node with many neighbors requires a larger neighborhood reduction than one with few neighbors, and connectivity affects which feature vectors are accessed. Equal node and edge counts do not imply equal work distribution or memory-access behavior. This relationship motivates investigating whether topology analysis can guide more efficient GPU execution.
 
 \subsection{Message Passing}
 \label{sec:message-passing}
