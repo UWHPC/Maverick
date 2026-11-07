@@ -15,19 +15,19 @@ Floating-point reductions can produce different results when their evaluation or
   + \varepsilon_{\mathrm{rel}}|y_{\mathrm{reference}}|,
 \]
 
-where $\varepsilon_{\mathrm{abs}}$ and $\varepsilon_{\mathrm{rel}}$ are the chosen tolerances. Nonfinite values will be checked explicitly.
+where $\varepsilon_{\mathrm{abs}}$ and $\varepsilon_{\mathrm{rel}}$ are the chosen tolerances. NaN and infinity will be checked separately, since they need special handling in numerical comparisons.
 
 Tests will cover supported boundary cases, including isolated nodes and highly uneven neighborhoods. Any assumptions about self-loops, duplicate edges, or edge weights will be stated so that the reference and candidate compute the same operation.
 
 \subsection{Performance Measurement}
 
-Measurements will report isolated operation latency and complete inference latency. Kernel-level results will help explain an optimization, while complete inference measurements will establish its practical effect.
+Measurements will report the time taken by individual operations, the time taken by complete inference, and throughput over repeated runs. Operation timings help explain an optimization; complete inference measurements show its effect on the workload as a whole.
 
-GPU execution is asynchronous, so timing must account for when device work actually completes. Measurements will use device timing events or explicit synchronization as appropriate. Warm-up runs will precede timed measurements, and repeated trials will be summarized using a stated statistic and a measure of variability.
+GPU work can continue after the CPU call returns, so a CPU timer alone may stop too early. Measurements will use GPU timing events or wait for GPU work to finish before stopping the timer. Warm-up runs will keep first-use effects out of steady-state timings, and repeated trials will be summarized using a stated statistic and a measure of variability.
 
 The hardware and software configuration will be recorded, together with the workload dimensions and execution settings. Compilation time will be reported separately from steady-state execution. Host-to-device transfers will either be included consistently or excluded explicitly.
 
-For a baseline execution time $T_{\mathrm{base}}$ and candidate execution time $T_{\mathrm{candidate}}$, speedup is
+For steady-state time per run, let $T_{\mathrm{base}}$ be the TorchInductor time and $T_{\mathrm{candidate}}$ the specialized time. Speedup is
 
 \[
   \operatorname{Speedup}=\frac{T_{\mathrm{base}}}{T_{\mathrm{candidate}}}.
@@ -46,5 +46,3 @@ For repeated inference, total time will be evaluated as a function of the number
 Results will be examined alongside graph characteristics and feature dimensions. The objective is to explain where a strategy works and identify the conditions under which it stops being beneficial.
 
 Where several changes contribute to an implementation, comparisons will separate their effects when practical. For example, a new layout will be evaluated independently of a new work assignment where the implementation permits it.
-
-Project success does not require improvement on every workload. A reproducible demonstration that topology information helps select an effective strategy would support the core hypothesis. Evidence that a proposed strategy provides little benefit, together with an explanation of the limiting factors, is also a useful outcome.

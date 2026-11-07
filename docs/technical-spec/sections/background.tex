@@ -233,9 +233,7 @@ For this project, the important distinction is between model parameters, feature
 \subsection{Message Passing}
 \label{sec:message-passing}
 
-Message passing is a common way to express how a GNN combines information across a graph. Each directed edge specifies a contribution from its source node to its destination node. Contributions arriving at the same destination are combined, and the result is used to update that node's representation.
-
-A message-passing layer can be described in terms of message construction, aggregation, and node updates. These describe the mathematical computation; an implementation does not necessarily execute them as separate kernels or store every intermediate result.
+Message passing describes how a GNN uses graph connections to update node representations. For each edge, a message is constructed from its source toward its destination. Each destination combines its incoming messages, then updates its representation. These are conceptual stages; an implementation may combine them into fewer GPU operations.
 
 \subsubsection{Message Construction}
 
@@ -276,7 +274,7 @@ The aggregation function reduces a variable number of message vectors to a fixed
 
 The result should not depend mathematically on the order in which neighbors are processed. Floating-point implementations can nevertheless produce small differences when the reduction order changes.
 
-Nodes with no incoming neighbors require an explicit convention. For sum aggregation, their aggregate is normally the zero vector. Mean and maximum aggregation require their own handling of empty neighborhoods.
+For a node with no incoming neighbors, sum aggregation produces a zero vector. Mean and maximum need a separately defined result because there are no messages to average or compare.
 
 \subsubsection{Node Update}
 
@@ -350,11 +348,11 @@ For this simple message function, sum aggregation can also be written as a spars
   S^{(\ell)}=A^{\mathsf{T}}H^{(\ell)}.
 \]
 
-The transpose is necessary because aggregation collects source features at each destination. Each edge contributes a feature vector, giving work proportional to $|E|F_\ell$ for straightforward sum aggregation.
+Because the adjacency matrix uses source nodes as rows, its column for node $3$ marks the edges entering node $3$. After transposing, row $3$ selects the representations of nodes $0$ and $2$, whose sum gives node $3$'s aggregate. Each edge contributes a feature vector, giving work proportional to $|E|F_\ell$ for straightforward sum aggregation.
 
 An implementation can process edges individually and accumulate into destination rows, or group edges by destination and perform a reduction for each node. These approaches express the same computation but distribute work and access memory differently. More complex message functions may require additional edge-level computation and cannot always be expressed as a single sparse matrix multiplication.
 
-The message-passing formulation therefore identifies where topology enters the workload: it determines which feature vectors are read and how many contributions each destination must reduce. The following subsection examines how these operations execute on a GPU.
+Graph topology determines which feature vectors are read and how many messages each destination aggregates.
 
 \subsection{GNN Computation on GPUs}
 \label{sec:gnn-computation-on-gpus}
@@ -370,7 +368,7 @@ To understand this distinction, consider the simple sum aggregation introduced e
 where $A$ uses source nodes as rows and $H$ contains node representations. A subsequent learned transformation might compute
 
 \[
-  Z=SW,
+  Y=SW,
 \]
 
 where $W$ is a dense weight matrix. The first operation follows graph connectivity to collect feature vectors. The second performs a regular matrix multiplication. Although both belong to the same layer, their memory-access patterns and opportunities for parallelism differ substantially.
@@ -393,7 +391,7 @@ Its arithmetic work is proportional to
   NF_{\mathrm{in}}F_{\mathrm{out}}.
 \]
 
-The matrix dimensions define a regular iteration space. GPU implementations can divide the output into tiles and reuse blocks of inputs and weights while computing each tile. This reuse increases the amount of arithmetic performed per value fetched from memory. Depending on the data type and matrix dimensions, implementations may also use specialized matrix-multiplication hardware.
+The matrix dimensions define a regular iteration space. GPU implementations can divide the output matrix into small rectangular blocks, called \emph{tiles}, and reuse input values and weights while computing each block. This reuse increases the amount of arithmetic performed per value fetched from memory. Depending on the data type and matrix dimensions, implementations may also use specialized matrix-multiplication hardware.
 
 Bias addition and activation functions operate on the resulting elements. These operations can sometimes be combined with the matrix multiplication or with each other, avoiding separate kernel launches and intermediate memory traffic. Such combinations are called \emph{kernel fusion}.
 
@@ -415,7 +413,7 @@ Feature dimensions provide another axis of parallelism. Threads can cooperate ac
 
 \subsubsection{Memory Access and Intermediate Storage}
 
-When each node's features occupy a contiguous row, threads accessing adjacent feature elements can generate efficient memory transactions. Accesses to different source rows remain dependent on graph connectivity. Nearby destination nodes may reuse some source vectors, or they may access widely separated regions of the feature matrix.
+When a node's feature values are stored next to one another, threads can often fetch adjacent values together. Accesses to different source rows remain dependent on graph connectivity. Nearby destination nodes may reuse some source vectors, or they may access widely separated regions of the feature matrix.
 
 This makes data reuse less predictable than in dense matrix multiplication. Graph ordering and sparse layout can affect locality even when the underlying mathematical operation remains unchanged.
 
@@ -447,34 +445,26 @@ The dominant cost of a GNN layer depends on its dimensions and graph structure. 
 
 Kernel-level improvements must also be assessed within the complete inference workload. Reducing aggregation time has limited effect if dense transformations dominate total latency. Likewise, converting the graph to a different layout or reordering its nodes introduces preprocessing costs and may require additional storage.
 
-For a static graph, preprocessing can be reused across repeated executions. If preprocessing costs $T_{\mathrm{prep}}$ and reduces execution time from $T_{\mathrm{base}}$ to $T_{\mathrm{specialized}}$, it becomes beneficial after $R$ runs when
+For a static graph, preparation can be reused across repeated executions. Let $T_{\mathrm{setup}}$ be the additional one-time cost of preparing a specialized strategy, including graph analysis, data conversion, or compilation. If each run takes $T_{\mathrm{base}}$ with TorchInductor and $T_{\mathrm{specialized}}$ with the new strategy, specialization pays off after $R$ runs when
 
 \[
-  T_{\mathrm{prep}}+R\,T_{\mathrm{specialized}}
+  T_{\mathrm{setup}}+R\,T_{\mathrm{specialized}}
   <R\,T_{\mathrm{base}}.
 \]
 
 When $T_{\mathrm{specialized}}<T_{\mathrm{base}}$, this gives
 
 \[
-  R>\frac{T_{\mathrm{prep}}}
+  R>\frac{T_{\mathrm{setup}}}
   {T_{\mathrm{base}}-T_{\mathrm{specialized}}}.
 \]
 
-Evaluation must therefore measure both execution performance and the cost of preparing a specialized representation or strategy. The central question is whether graph characteristics can guide execution choices that produce a measurable benefit over the existing baseline.
+Evaluation must therefore measure both execution performance and the one-time cost of preparing a specialized strategy.
 
 \subsection{Sparse and Irregular Computation}
 \label{sec:sparse-irregular-computation}
 
 Sparsity and irregularity describe different properties of a graph workload. \emph{Sparsity} means that relatively few of the possible edges exist. \emph{Irregularity} means that the stored edges produce uneven work or nonuniform memory-access patterns. A sparse graph can have a regular structure, such as every node having the same number of neighbors, while another equally sparse graph can have highly variable degrees.
-
-For a directed graph with $N=|V|$ nodes, its adjacency matrix contains $N^2$ possible entries. Its density is
-
-\[
-  \rho=\frac{|E|}{N^2},
-\]
-
-using a convention that includes possible self-loops. A small value of $\rho$ indicates that most entries are zero. Sparse representations avoid storing and processing those absent connections, but introduce index arrays that describe where the remaining entries belong.
 
 In GNN computation, the connectivity can be sparse while the node feature matrix remains dense. Each stored edge may require access to an entire feature vector. Consequently, a sparse adjacency matrix does not necessarily imply a small working set or low memory traffic.
 
@@ -494,8 +484,6 @@ If each contribution contains $F$ feature elements, straightforward aggregation 
 
 for that node. Summed over the graph, the contribution-processing work is proportional to $|E|F$, but this total does not describe how evenly the work is distributed.
 
-Consider two graphs with the same node and edge counts. In one, each node receives approximately the same number of edges. In the other, a small number of nodes receive a large fraction of all edges. Both require the same total number of contributions for sum aggregation, yet assigning one thread group to each destination creates very different workloads.
-
 The average in-degree is
 
 \[
@@ -508,11 +496,7 @@ Very small neighborhoods can leave a large thread group underused. Very large ne
 
 \subsubsection{Indirect Memory Access}
 
-Sparse traversal uses stored indices to locate feature vectors. Instead of reading the next feature row in sequence, an operation reads the row identified by an edge's source index. The sequence of source indices therefore influences locality.
-
-Adjacent edges may refer to the same source node or to nearby feature rows, allowing reuse through the memory hierarchy. Alternatively, they may refer to widely separated rows with little reuse. Processing order affects whether repeated accesses occur close enough together to benefit from cached data.
-
-Efficient accesses within a feature vector do not guarantee efficient accesses across vectors. Threads may read contiguous feature elements for each source while the sequence of source rows remains scattered. Feature width, memory layout, and graph ordering jointly influence the resulting traffic.
+Sparse traversal uses edge indices to choose which feature rows to read. Nearby edges may reuse the same source data, while scattered source indices can lead to accesses far apart in memory. Thus, reading each feature vector efficiently does not guarantee efficient access across the graph.
 
 Reordering edges can change traversal order without changing connectivity. Renumbering nodes can also change where their feature rows are stored, provided that connectivity and node-associated data are remapped consistently. These transformations can improve locality, but their preparation cost and any required output remapping must be included in evaluation.
 
@@ -547,7 +531,7 @@ Static topology does not make every execution decision permanent. A change in fe
 
 When topology changes, previously computed structural information may become invalid. Adding an edge changes the neighborhood of its destination and may alter degree-based work assignments. Removing or renumbering nodes can also invalidate indices and feature mappings.
 
-A dynamic workload must therefore rebuild affected representations or maintain them incrementally. Incremental maintenance updates only the affected structures, but requires additional bookkeeping and may limit the layouts that are practical to use. The cost depends on the frequency and extent of the changes.
+If connectivity changes, any affected prepared representation or execution plan must be rebuilt or updated before it is reused.
 
 Topology can also change because of the execution procedure. For example, selecting a different subset of neighbors for each run produces changing computation graphs even if the underlying dataset is fixed. Such a workload cannot necessarily reuse a plan specialized to one selected edge set.
 
@@ -557,14 +541,6 @@ A fixed underlying graph is therefore insufficient by itself. The relevant quest
 
 A topology-dependent representation or plan must be associated with the graph for which it was prepared. Reusing it after connectivity changes can produce incorrect results, not merely lower performance.
 
-The implementation must define how it identifies the prepared graph and detects changes that invalidate specialization. Possible approaches include explicit graph versions or an interface that requires topology to remain immutable while a prepared plan is in use. The exact mechanism will be specified as part of the system design.
+The system must ensure that a prepared plan is used only with the graph it was built for, for example by requiring its connectivity to remain fixed while the plan is in use.
 
 Changes to numerical values require separate consideration. A plan based only on connectivity may remain valid when node features change. If preprocessing incorporates edge weights or other values, changes to those values may also require rebuilding the prepared data.
-
-\subsubsection{Initial Project Scope}
-
-The initial project targets repeated inference on static graphs. Topology is available before execution and remains fixed while its prepared representation or plan is reused. This permits the project to evaluate whether structural analysis leads to useful execution improvements without also requiring mechanisms for maintaining specialization under graph updates.
-
-Evaluation will distinguish one-time preparation from repeated execution and report the conditions under which preparation is recovered. It will also state which inputs may change without invalidating a specialization.
-
-Dynamic graph support is outside the initial scope. It may be considered later, once the benefits and limitations of specialization on fixed connectivity have been established.
