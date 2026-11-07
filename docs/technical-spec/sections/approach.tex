@@ -7,7 +7,7 @@ The project will establish a TorchInductor baseline, profile GNN workloads acros
 
 The first stage will establish reproducible inference workloads using PyTorch Geometric. Each workload will specify its model configuration, input graph, feature dimensions, and numerical data type. Model parameters will remain fixed during inference.
 
-The primary baseline will be PyTorch Geometric workloads compiled with \texttt{torch.compile} using TorchInductor. Uncompiled PyTorch Geometric execution will also be measured for context. Compilation failures or graph breaks, where execution leaves the captured computation and returns to ordinary execution, will be recorded so that comparisons describe what actually ran.
+The primary baseline will be PyTorch Geometric workloads compiled with \texttt{torch.compile} using TorchInductor~\cite{pygCompileDocs}. Uncompiled PyTorch Geometric execution will also be measured for context. Compilation failures or graph breaks, where execution leaves the captured computation and returns to ordinary execution, will be recorded so that comparisons describe what actually ran.
 
 The initial set will contain a few representative GNN models that use neighborhood aggregation and dense feature transformations. The models will be chosen based on compatibility with the available software and hardware.
 
@@ -23,8 +23,8 @@ Profiling will determine which operations account for substantial execution time
 
 After identifying a measurable bottleneck, the project will implement a focused alternative for a supported operation. Candidate approaches may include a different sparse layout, a different assignment of work to threads, or combining operations to reduce intermediate memory traffic.
 
-Specialized GPU implementations will use Triton where appropriate. CUDA/C++ may be considered if the selected operation requires control that is difficult to express effectively in Triton.
+Specialized GPU implementations will use Triton where appropriate~\cite{tritonDocs}. CUDA/C++ may be considered if the selected operation requires control that is difficult to express effectively in Triton.
 
 Each candidate will first be tested independently, then evaluated within a complete inference workload. Graph analysis and preprocessing will be measured separately from repeated execution.
 
-The project will test whether graph characteristics predict when a candidate is beneficial, potentially using a simple selection rule. It will then examine how to connect successful implementations to the \texttt{torch.compile} workflow, while retaining TorchInductor for other operations.
+The project will test whether graph characteristics predict when a candidate is beneficial, potentially using a simple selection rule. It will integrate a supported implementation into a complete GNN inference workload invoked through \texttt{torch.compile}, while retaining TorchInductor for other operations. The integration mechanism will be selected after profiling; PyTorch supports both user-defined Triton kernels and custom compiler backends~\cite{pytorchTritonCompile,pytorchCustomBackends}.

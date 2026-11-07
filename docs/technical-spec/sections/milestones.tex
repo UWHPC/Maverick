@@ -23,9 +23,9 @@ The deliverable will include the implementation, its supported input conditions,
 
 \subsection{Milestone 4: Complete Workload Evaluation}
 
-Run the specialized operation within a complete GNN inference workload. Compare latency and throughput with standard \texttt{torch.compile}, and report one-time preparation costs and additional memory use.
+Integrate the specialized operation into a complete GNN inference workload invoked through \texttt{torch.compile}. Demonstrate that the compiled workload uses the specialized operation for supported inputs and TorchInductor for the remaining operations. Compare latency and throughput with standard \texttt{torch.compile}, and report one-time preparation costs and additional memory use.
 
-Test whether graph characteristics and workload dimensions can guide a choice between specialized and TorchInductor execution. Investigate how to make that choice within the \texttt{torch.compile} workflow.
+Test whether graph characteristics and workload dimensions can guide a choice between specialized and TorchInductor execution. Document the conditions under which the specialization is selected and how unsupported inputs use the baseline path.
 
 \subsection{Milestone 5: Final Analysis and Documentation}
 

@@ -234,7 +234,7 @@ For this project, the important distinction is between model parameters, feature
 \subsection{Message Passing}
 \label{sec:message-passing}
 
-Message passing describes how a GNN uses graph connections to update node representations. For each edge, a message is constructed from its source toward its destination. Each destination combines its incoming messages, then updates its representation. These are conceptual stages; an implementation may combine them into fewer GPU operations.
+Message passing describes how a GNN uses graph connections to update node representations~\cite{gilmerMessagePassing}. For each edge, a message is constructed from its source toward its destination. Each destination combines its incoming messages, then updates its representation. These are conceptual stages; an implementation may combine them into fewer GPU operations.
 
 \subsubsection{Message Construction}
 

@@ -6,7 +6,7 @@
 
 Graph Neural Networks (GNNs) are neural networks designed to operate on data represented as graphs. Graphs represent entities as vertices, also called nodes, and relationships between them as edges. GNNs use these relationships to learn representations of individual vertices or entire graphs, making them useful for problems where relationships matter, such as social networks, recommendation systems, and molecular structures.
 
-Unlike the regular structure of many dense neural network operations, graphs can be highly sparse and irregular, with the number of connections varying widely from vertex to vertex. This creates an uneven distribution of work that makes it difficult to keep the GPU's parallel processing units equally busy.
+Unlike the regular structure of many dense neural network operations, graphs can be highly sparse and irregular, with the number of connections varying widely from vertex to vertex. This creates an uneven distribution of work that makes it difficult to keep the GPU's parallel processing units equally busy~\cite{gnnAdvisor}.
 
 For workloads that repeatedly use the same static graph, its structure can be analyzed once and used to guide GPU execution on later runs.
 
@@ -22,7 +22,7 @@ The same GNN can produce different GPU workloads on graphs with the same number 
 
 Their different degree distributions produce different patterns of work on the GPU.
 
-With \texttt{torch.compile}, PyTorch captures model computations and passes them to a compiler backend. TorchInductor is the default backend and provides the baseline for evaluating graph-specific GPU execution strategies.
+With \texttt{torch.compile}, PyTorch captures model computations and passes them to a compiler backend. TorchInductor is the default backend and provides the baseline for evaluating graph-specific GPU execution strategies~\cite{pytorchCompilerDocs}.
 
 \subsection{Core Hypothesis}
 \label{sec:core-hypothesis}
@@ -38,7 +38,7 @@ The project will first establish a reproducible baseline by running PyTorch Geom
 
 Based on the results of profiling, the project will develop and evaluate specialized GPU execution strategies for selected GNN operations. Initial implementations will use Triton when appropriate, while CUDA/C++ may be explored when profiling indicates that lower-level control could be beneficial.
 
-The project will investigate how graph characteristics can guide the selection of specialized strategies within the \texttt{torch.compile} workflow.
+The project will integrate a selected strategy into a GNN inference workload run through \texttt{torch.compile}. It will test whether graph characteristics can guide when that strategy is used while TorchInductor handles the remaining operations.
 
 The evaluation will compare each approach with TorchInductor on numerical correctness, isolated kernel performance, and end-to-end latency and throughput. It will also measure the overhead of graph analysis, preprocessing, and specialization so any speedup can be assessed over repeated runs.
 
