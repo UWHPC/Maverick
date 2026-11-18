@@ -8,7 +8,7 @@ Compute for optional kernel counters.
 
 ## Capture an experiment
 
-From the checkout root, use an existing `ogbn-arxiv` checkpoint directory with
+From the checkout root, use an existing checkpoint directory with
 `model.safetensors` and `metrics.json`. Checkpoints can come from training or the
 [optional weights submodule](../../models/README.md).
 
@@ -21,8 +21,11 @@ From the checkout root, use an existing `ogbn-arxiv` checkpoint directory with
 ```
 
 `arxiv-smoke` uses a seeded 8,192-node induced graph. Use `arxiv-full` for the full
-graph or select an arXiv GCN or GAT checkpoint. Capture saves the original Inductor
-wrapper next to the experiment in `experiment.capture/`.
+arXiv graph with a GraphSAGE, GCN, or GAT checkpoint. Use `products-250k` with a
+Products GraphSAGE checkpoint for a seeded 250,000-node induced graph. Capture
+saves the original Inductor wrapper next to the experiment in `experiment.capture/`.
+The [model README](../../models/README.md#dump-all-four-models-to-triton-on-watcloud)
+shows how to capture all four checkpoints in one WATcloud job.
 
 Edit the function bodies in `experiment.py` and leave the functions you want to
 substitute in the exported `KERNELS` list. Keep their names, signatures, and
@@ -52,4 +55,4 @@ Profiles run separately from timing and retain the profiler reports and logs.
 
 A body edit must preserve its original launch and mutation contract. If a target
 emits a different kernel body or argument layout, capture a new experiment on
-that target. The benchmark uses fixed, full-graph arXiv inference fixtures.
+that target. Each experiment runs inference on a fixed graph fixture.

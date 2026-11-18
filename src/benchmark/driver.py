@@ -9,12 +9,26 @@ from unittest.mock import patch
 
 from .kernels import build_replacements, read_experiment
 
-FIXTURES = ("arxiv-smoke", "arxiv-full")
+FIXTURES = {
+    "arxiv-smoke": "ogbn-arxiv",
+    "arxiv-full": "ogbn-arxiv",
+    "products-250k": "ogbn-products",
+}
 NVTX_RANGE = "maverick_benchmark"
 
 
 def write_json(path, contents):
     path.write_text(json.dumps(contents, indent=2, allow_nan=False) + "\n")
+
+
+def products_snapshot(data):
+    import torch
+    from torch_geometric.utils import subgraph
+
+    rng = torch.Generator().manual_seed(42)
+    nodes = torch.randperm(data.num_nodes, generator=rng)[:250_000].sort().values
+    edges, _ = subgraph(nodes, data.edge_index, relabel_nodes=True, num_nodes=data.num_nodes)
+    return data.x[nodes], edges
 
 
 def prepare_workload(checkpoint, data_dir, fixture):
@@ -35,20 +49,27 @@ def prepare_workload(checkpoint, data_dir, fixture):
 
     weights = checkpoint / "model.safetensors"
     metrics = json.loads((checkpoint / "metrics.json").read_text())
-    if metrics["dataset"] != "ogbn-arxiv" or fixture not in FIXTURES:
-        raise ValueError("Use an ogbn-arxiv checkpoint and arxiv-smoke or arxiv-full")
-    if not metrics["symmetrized"]:
+    dataset = FIXTURES.get(fixture)
+    if dataset is None or metrics["dataset"] != dataset:
+        raise ValueError(f"Fixture {fixture} is incompatible with {metrics['dataset']}")
+    if dataset == "ogbn-arxiv" and not metrics["symmetrized"]:
         raise ValueError("Expected a checkpoint trained with symmetrized arXiv edges")
     checkpoint_hash = hashlib.sha256(weights.read_bytes()).hexdigest()
     config = ModelConfig(**metrics["model"])
     model = NodeClassifier(config).eval()
     model.load_state_dict(load_file(weights), strict=True)
-    data, splits, _ = load_dataset(metrics["dataset"], data_dir)
+    data, splits, _ = load_dataset(dataset, data_dir)
     if fixture == "arxiv-smoke":
         data, _ = arxiv_snapshot(data, splits, metrics["seed"])
-    edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
-    edges, edge_weight = model.prepare_edges(edge_index, data.num_nodes)
-    cpu_inputs = (data.x.float(), edges, edge_weight)
+    if fixture == "products-250k":
+        features, edge_index = products_snapshot(data)
+    else:
+        features = data.x
+        edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
+    del data
+    num_nodes = features.size(0)
+    edges, edge_weight = model.prepare_edges(edge_index, num_nodes)
+    cpu_inputs = (features.float(), edges, edge_weight)
     digest = hashlib.sha256()
     for tensor in cpu_inputs:
         if tensor is None:
@@ -67,8 +88,8 @@ def prepare_workload(checkpoint, data_dir, fixture):
     identity = {
         "fixture": fixture,
         "architecture": config.architecture,
-        "dataset": metrics["dataset"],
-        "nodes": data.num_nodes,
+        "dataset": dataset,
+        "nodes": num_nodes,
         "edges": edges.size(1),
         "model": metrics["model"],
         "checkpoint_sha256": checkpoint_hash,

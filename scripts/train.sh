@@ -70,28 +70,9 @@ data_dir=${MAVERICK_DATA_DIR:-"$scratch/data"}
 runs=${MAVERICK_RUN_DIR:-"$repo/runs"}
 mkdir -p "$scratch" "$data_dir" "$runs"
 
-if [[ -n ${MAVERICK_PYTHON:-} ]]; then
-    python=$MAVERICK_PYTHON
-else
-    venv=${MAVERICK_VENV:-"$scratch/venv"}
-    python="$venv/bin/python"
-    mkdir -p "$venv"
-    (
-        flock 9
-        if [[ ! -f "$venv/.maverick-cu128" ]]; then
-            export PIP_CACHE_DIR="$scratch/pip-cache"
-            "${MAVERICK_BOOTSTRAP_PYTHON:-python3}" -m venv "$venv"
-            "$python" -m pip install torch==2.8.0 \
-                --index-url https://download.pytorch.org/whl/cu128
-            "$python" -m pip install torch-geometric==2.7.0 ogb==1.3.6 \
-                safetensors==0.6.2 packaging
-            "$python" -m pip install --no-index --only-binary=:all: \
-                --find-links https://data.pyg.org/whl/torch-2.8.0+cu128.html \
-                pyg_lib==0.4.0+pt28cu128
-            touch "$venv/.maverick-cu128"
-        fi
-    ) 9>"$venv/.install.lock"
-fi
+source models/cuda-env.sh
+maverick_cuda_setup "$scratch"
+python=$MAVERICK_PYTHON
 
 slots=$gpus
 if (( slots > ${#workloads[@]} )); then

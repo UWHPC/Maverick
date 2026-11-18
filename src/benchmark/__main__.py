@@ -85,7 +85,7 @@ def compare(args):
         raise ValueError("Select at least one kernel in KERNELS")
     fixture = workload.get("fixture")
     if fixture not in FIXTURES:
-        raise ValueError("The experiment must specify an arXiv graph fixture")
+        raise ValueError(f"Choose a graph fixture from {', '.join(FIXTURES)}")
     checkpoint_dir = args.checkpoint_dir or experiment.parent / workload["checkpoint_dir"]
     data_dir = args.data_dir or experiment.parent / workload["data_dir"]
     request = {
