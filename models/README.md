@@ -15,9 +15,13 @@ bash scripts/weights.sh pull
 ```
 
 Published runs are stored under `models/model_weights/runs/<run-id>/`. Each workload
-directory contains `model.safetensors` and `metrics.json`.
+directory contains a `model.safetensors` state dict and a `metrics.json` file with
+the model configuration, seed, and OGB validation and test accuracy.
 
 ## Publish a training run
+
+The training launcher writes checkpoints, metrics, and per-model logs to `runs/`
+by default. Set `MAVERICK_RUN_DIR` to override that location.
 
 Authenticate Git with a Hugging Face credential that can write to the weights
 repository. From the checkout root, pass the completed run directory printed by

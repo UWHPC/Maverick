@@ -16,6 +16,8 @@ cd maverick
 sbatch scripts/train.sh
 ```
 
+> **Warning:** Initialize the [model weights submodule](models/README.md) only on machines that will run the models.
+
 Use `--nodelist` to target a node with both GPUs. WATcloud's public inventory lists
 one RTX 4090 on `trpro-slurm2`. For a quick GraphSAGE run there, request one GPU shard.
 This trains for three epochs on a seeded 8,192-node arXiv snapshot.
@@ -33,13 +35,8 @@ scratch is cleared at exit. Set `MAVERICK_DATA_DIR` and optionally `MAVERICK_VEN
 to user-owned paths on a WATcloud data mount to reuse downloads and dependencies.
 `MAVERICK_PYTHON` selects an existing environment and skips installation.
 
-Checkpoints, metrics, and per-model logs are written to `runs/` or `MAVERICK_RUN_DIR`.
-Each checkpoint has a `model.safetensors` state dict and a `metrics.json` file with
-the model configuration, seed, and OGB validation and test accuracy. The Products
-trainer uses neighbor sampling and computes validation and test predictions with
-all neighbors, one layer at a time.
+The Products trainer uses neighbor sampling and computes validation and test
+predictions with all neighbors, one layer at a time.
 
 [WATcloud Slurm guide](https://cloud.watonomous.ca/docs/compute-cluster/slurm) ·
 [Machine inventory](https://cloud.watonomous.ca/machines)
-
-See the [model weights README](models/README.md) for checkpoint access and publishing.
