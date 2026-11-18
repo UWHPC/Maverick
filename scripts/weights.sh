@@ -4,13 +4,14 @@ set -euo pipefail
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+submodule=models/model_weights
 case "${1:-}" in
     pull|publish) ;;
     *) printf 'Usage: bash scripts/weights.sh pull | publish RUN_DIR\n'; exit 2 ;;
 esac
 git xet --version >/dev/null || fail 'Install Git Xet and run git xet install first.'
 if [[ $1 == pull ]]; then
-    git -C "$repo" submodule update --init -- weights
+    git -C "$repo" submodule update --init -- "$submodule"
     exit
 fi
 
@@ -19,9 +20,9 @@ run=${2:?Specify the completed training run directory}
 name=$(basename "$(cd "$run" && pwd)")
 [[ $name =~ ^[a-zA-Z0-9_-]+$ ]] || fail 'Invalid training run directory name.'
 
-weights="$repo/weights"
+weights="$repo/$submodule"
 if [[ ! -e "$weights/.git" ]]; then
-    git -C "$repo" submodule update --init -- weights
+    git -C "$repo" submodule update --init -- "$submodule"
 fi
 [[ -z $(git -C "$weights" status --porcelain) ]] || fail 'The weights submodule has local changes.'
 git -C "$weights" fetch origin main
@@ -62,4 +63,4 @@ for workload in "${workloads[@]}"; do
 done
 git -C "$weights" commit -m "Add Maverick checkpoints for $name"
 git -C "$weights" push origin HEAD:refs/heads/main
-printf 'Published %s. Stage the weights submodule in Maverick to pin this revision.\n' "$name"
+printf 'Published %s. Stage %s in Maverick to pin this revision.\n' "$name" "$submodule"

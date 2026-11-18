@@ -4,14 +4,14 @@ Graph topology-aware GPU execution for PyTorch Geometric within the `torch.compi
 
 ## Train the OGB checkpoints on WATcloud
 
-SSH to a WATcloud login node, clone the GitHub repository without `--recurse-submodules`,
-and submit from the checkout root. The default job requests two RTX 4090s on one node.
+SSH to a WATcloud login node, clone the `vijay/train_models` branch, and submit from
+the checkout root. The default job requests two RTX 4090s on one node.
 It trains GraphSAGE, GCN, and GAT on `ogbn-arxiv` and GraphSAGE on `ogbn-products`,
 with one training process per GPU. It requires Linux x86-64, Python 3.10 through 3.13
 with `venv`, and a driver compatible with CUDA 12.8.
 
 ```sh
-git clone https://github.com/UWHPC/eignn.git maverick
+git clone --branch vijay/train_models --single-branch https://github.com/UWHPC/Maverick.git maverick
 cd maverick
 sbatch scripts/train.sh
 ```
@@ -42,18 +42,4 @@ all neighbors, one layer at a time.
 [WATcloud Slurm guide](https://cloud.watonomous.ca/docs/compute-cluster/slurm) ·
 [Machine inventory](https://cloud.watonomous.ca/machines)
 
-## Optional weights submodule
-
-The GitHub repository pins a revision of the [Hugging Face weights repository](https://huggingface.co/alonso130r/maverick).
-A regular clone leaves `weights/` uninitialized. To fetch the pinned weights, install
-Git LFS and Git Xet, run `git lfs install` and `git xet install`, then run
-`bash scripts/weights.sh pull`.
-
-To publish, authenticate Git with a Hugging Face credential that can write to the
-weights repository. Pass the completed run directory printed by the launcher to
-`bash scripts/weights.sh publish RUN_DIR`. The publisher stores only the Safetensors
-checkpoints and metrics under `runs/<run-id>` on Hugging Face, using the Git Xet
-transfer agent. After the upload succeeds, commit the updated `weights` gitlink in
-the GitHub repository to make that revision available to other clones.
-
-[Hugging Face Git Xet setup](https://huggingface.co/docs/hub/en/xet/using-xet-storage)
+See the [model weights README](models/README.md) for checkpoint access and publishing.
