@@ -5,6 +5,8 @@ import socket
 import subprocess
 import time
 from pathlib import Path
+from pickle import UnpicklingError
+from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 from .kernels import build_replacements, read_experiment
@@ -31,7 +33,77 @@ def products_snapshot(data):
     return data.x[nodes], edges
 
 
-def prepare_workload(checkpoint, data_dir, fixture):
+def graph_fingerprint(inputs):
+    digest = hashlib.sha256()
+    for tensor in inputs:
+        if tensor is None:
+            digest.update(b"None")
+        else:
+            digest.update(repr((tensor.shape, tensor.dtype, tensor.stride())).encode())
+            digest.update(memoryview(tensor.contiguous().numpy()).cast("B"))
+    return digest.hexdigest()
+
+
+def save_prepared_graph(torch, path, inputs):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with NamedTemporaryFile(dir=path.parent, delete=False) as stream:
+        temporary = Path(stream.name)
+        try:
+            torch.save(inputs, stream)
+            stream.close()
+            temporary.replace(path)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+
+def prepare_graph(torch, model, data_dir, dataset, fixture, seed, expected_hash):
+    cache = data_dir / ".maverick-fixtures"
+    if expected_hash is not None:
+        if not isinstance(expected_hash, str) or len(expected_hash) != 64 or any(
+            char not in "0123456789abcdef" for char in expected_hash
+        ):
+            raise ValueError("Invalid graph_sha256 in the experiment")
+        path = cache / f"{expected_hash}.pt"
+        if path.is_file():
+            try:
+                inputs = torch.load(path, map_location="cpu", weights_only=True)
+                if (
+                    isinstance(inputs, tuple)
+                    and len(inputs) == 3
+                    and all(isinstance(tensor, torch.Tensor) for tensor in inputs[:2])
+                    and (inputs[2] is None or isinstance(inputs[2], torch.Tensor))
+                    and graph_fingerprint(inputs) == expected_hash
+                ):
+                    print(f"Using prepared graph {path}", flush=True)
+                    return inputs, expected_hash
+            except (EOFError, IndexError, OSError, RuntimeError, UnpicklingError, ValueError):
+                pass
+            print(f"Rebuilding invalid prepared graph {path}", flush=True)
+
+    from torch_geometric.utils import to_undirected
+
+    from models.train import arxiv_snapshot, load_dataset
+
+    data, splits, _ = load_dataset(dataset, data_dir)
+    if fixture == "arxiv-smoke":
+        data, _ = arxiv_snapshot(data, splits, seed)
+    if fixture == "products-250k":
+        features, edge_index = products_snapshot(data)
+    else:
+        features = data.x
+        edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
+    edges, edge_weight = model.prepare_edges(edge_index, features.size(0))
+    inputs = (features.float(), edges, edge_weight)
+    fingerprint = graph_fingerprint(inputs)
+    if expected_hash is None or expected_hash == fingerprint:
+        try:
+            save_prepared_graph(torch, cache / f"{fingerprint}.pt", inputs)
+        except (OSError, RuntimeError) as error:
+            print(f"Could not cache prepared graph: {error}", flush=True)
+    return inputs, fingerprint
+
+
+def prepare_workload(checkpoint, data_dir, fixture, expected_graph=None):
     import torch
 
     if torch.__version__.split("+")[0] != "2.8.0":
@@ -42,10 +114,8 @@ def prepare_workload(checkpoint, data_dir, fixture):
     import torch_geometric
     import triton
     from safetensors.torch import load_file
-    from torch_geometric.utils import to_undirected
 
     from models.gnn import ModelConfig, NodeClassifier
-    from models.train import arxiv_snapshot, load_dataset
 
     weights = checkpoint / "model.safetensors"
     metrics = json.loads((checkpoint / "metrics.json").read_text())
@@ -58,25 +128,9 @@ def prepare_workload(checkpoint, data_dir, fixture):
     config = ModelConfig(**metrics["model"])
     model = NodeClassifier(config).eval()
     model.load_state_dict(load_file(weights), strict=True)
-    data, splits, _ = load_dataset(dataset, data_dir)
-    if fixture == "arxiv-smoke":
-        data, _ = arxiv_snapshot(data, splits, metrics["seed"])
-    if fixture == "products-250k":
-        features, edge_index = products_snapshot(data)
-    else:
-        features = data.x
-        edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
-    del data
-    num_nodes = features.size(0)
-    edges, edge_weight = model.prepare_edges(edge_index, num_nodes)
-    cpu_inputs = (features.float(), edges, edge_weight)
-    digest = hashlib.sha256()
-    for tensor in cpu_inputs:
-        if tensor is None:
-            digest.update(b"None")
-        else:
-            digest.update(repr((tensor.shape, tensor.dtype, tensor.stride())).encode())
-            digest.update(memoryview(tensor.contiguous().numpy()).cast("B"))
+    cpu_inputs, graph_hash = prepare_graph(
+        torch, model, data_dir, dataset, fixture, metrics["seed"], expected_graph
+    )
 
     torch.cuda.set_device(0)
     torch.backends.cuda.matmul.allow_tf32 = False
@@ -89,11 +143,11 @@ def prepare_workload(checkpoint, data_dir, fixture):
         "fixture": fixture,
         "architecture": config.architecture,
         "dataset": dataset,
-        "nodes": num_nodes,
-        "edges": edges.size(1),
+        "nodes": cpu_inputs[0].size(0),
+        "edges": cpu_inputs[1].size(1),
         "model": metrics["model"],
         "checkpoint_sha256": checkpoint_hash,
-        "graph_sha256": digest.hexdigest(),
+        "graph_sha256": graph_hash,
         "versions": {
             "torch": torch.__version__,
             "pyg": torch_geometric.__version__,
@@ -250,12 +304,13 @@ def worker(request):
     output = Path(request["output"])
     output.mkdir(parents=True, exist_ok=True)
     mode = request["mode"]
+    expected = request.get("expected_workload")
     start = time.perf_counter()
     model, inputs, identity = prepare_workload(
-        Path(request["checkpoint_dir"]), Path(request["data_dir"]), request["fixture"]
+        Path(request["checkpoint_dir"]), Path(request["data_dir"]), request["fixture"],
+        expected.get("graph_sha256") if expected is not None else None,
     )
     prep_s = time.perf_counter() - start
-    expected = request.get("expected_workload")
     if expected is not None:
         different = [key for key, value in identity.items() if expected.get(key) != value]
         if different:

@@ -51,6 +51,10 @@ experiments. Pass `--checkpoint-dir` or `--data-dir` to override either location
 The runner compares stock and edited outputs to eager inference before timing.
 It uses the tolerances saved during capture. Pass `--atol` or `--rtol` to override
 either value. Older experiments without saved tolerances use the original defaults.
+Use `--check-only` to compile both variants and check their outputs before spending
+time on timings or profiler traces. Prepared input graphs are cached by their
+fingerprint under `.maverick-fixtures/` in the OGB data directory. Subsequent
+workers reuse the cached inputs after verifying the fingerprint.
 It writes `summary.md`, raw samples in `report.json`, compiler dumps, and effective
 edited sources under a fresh directory in `benchmark-results/`. Pass `--output`
 to choose a different new directory. The default profiler is Nsight Systems when

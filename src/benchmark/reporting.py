@@ -188,30 +188,35 @@ def write_report(output: Path, report: dict) -> None:
         "",
         "[Raw samples and run metadata](report.json)",
         "",
-        "| Variant | Timing | Samples | Median (ms) | p95 (ms) | Inferences/s |",
-        "| --- | --- | ---: | ---: | ---: | ---: |",
     ]
-    for variant in _VARIANTS:
-        for timing in _TIMINGS:
-            values = summary[variant][timing]
-            if values:
-                count = values["count"]
-                median = values["median_ms"]
-                p95 = values["p95_ms"]
-                throughput = values["inferences_per_second"]
-                lines.append(
-                    f"| {variant} | {timing[:-3]} | {count} | {median:.4f} | {p95:.4f} "
-                    f"| {throughput:.2f} |"
-                )
-    lines.extend(["", "## Candidate speedup", ""])
-    if speedups:
-        for timing, speedup in speedups.items():
-            lines.append(
-                f"- {timing[:-3]} time, "
-                f"{speedup['median_speedup']:.3f}x median and {speedup['p95_speedup']:.3f}x p95."
-            )
+    if report.get("mode") == "check-only":
+        lines.append("Correctness-only run.")
     else:
-        lines.append("A speedup requires a passing comparison and complete paired timing samples.")
+        lines.extend([
+            "| Variant | Timing | Samples | Median (ms) | p95 (ms) | Inferences/s |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ])
+        for variant in _VARIANTS:
+            for timing in _TIMINGS:
+                values = summary[variant][timing]
+                if values:
+                    count = values["count"]
+                    median = values["median_ms"]
+                    p95 = values["p95_ms"]
+                    throughput = values["inferences_per_second"]
+                    lines.append(
+                        f"| {variant} | {timing[:-3]} | {count} | {median:.4f} | {p95:.4f} "
+                        f"| {throughput:.2f} |"
+                    )
+        lines.extend(["", "## Candidate speedup", ""])
+        if speedups:
+            for timing, speedup in speedups.items():
+                lines.append(
+                    f"- {timing[:-3]} time, "
+                    f"{speedup['median_speedup']:.3f}x median and {speedup['p95_speedup']:.3f}x p95."
+                )
+        else:
+            lines.append("A speedup requires a passing comparison and complete paired timing samples.")
 
     if any(variant in report for variant in _VARIANTS):
         lines.extend([

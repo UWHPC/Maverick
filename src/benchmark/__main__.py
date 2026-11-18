@@ -159,6 +159,7 @@ def compare(args):
     variants = ("stock", "candidate")
     report = {
         "status": "failed",
+        "mode": "check-only" if args.check_only else "benchmark",
         "workload": workload,
         "selected_kernels": list(edits),
         "profile": [],
@@ -177,25 +178,29 @@ def compare(args):
                 raise ValueError(f"{variant} logits failed the eager comparison")
         report["correctness"]["passed"] = True
 
-        for index, variant in enumerate((*variants, *reversed(variants)), start=1):
-            result = run_worker(output / f"timing-{index}-{variant}", output / "cache" / variant,
-                                {**request, "mode": "measure", "variant": variant})
-            report["timing_blocks"].append({"index": index, "variant": variant})
-            for timing, samples in result["samples"].items():
-                report["samples"][variant][timing].extend(samples)
-        report["status"] = "ok"
+        if not args.check_only:
+            for index, variant in enumerate((*variants, *reversed(variants)), start=1):
+                result = run_worker(
+                    output / f"timing-{index}-{variant}", output / "cache" / variant,
+                    {**request, "mode": "measure", "variant": variant},
+                )
+                report["timing_blocks"].append({"index": index, "variant": variant})
+                for timing, samples in result["samples"].items():
+                    report["samples"][variant][timing].extend(samples)
 
-        profiles = {"auto": ("nsys",), "both": ("nsys", "ncu"), "none": ()}
-        for mode in profiles.get(args.profile, (args.profile,)):
-            for variant in variants:
-                prefix = output / "profiles" / f"{variant}-{mode}"
-                command, env = worker_command(prefix, output / "cache" / variant, {
-                    **request, "mode": "profile", "variant": variant,
-                    "samples": 1 if mode == "ncu" else 5,
-                })
-                profile = launch_profile(mode, command, env, prefix,
-                                         report["candidate"]["kernel_names"])
-                report["profile"].append({"variant": variant, **profile})
+            profiles = {"auto": ("nsys",), "both": ("nsys", "ncu"), "none": ()}
+            for mode in profiles.get(args.profile, (args.profile,)):
+                for variant in variants:
+                    prefix = output / "profiles" / f"{variant}-{mode}"
+                    command, env = worker_command(prefix, output / "cache" / variant, {
+                        **request, "mode": "profile", "variant": variant,
+                        "samples": 1 if mode == "ncu" else 5,
+                    })
+                    profile = launch_profile(
+                        mode, command, env, prefix, report["candidate"]["kernel_names"],
+                    )
+                    report["profile"].append({"variant": variant, **profile})
+        report["status"] = "ok"
     except (OSError, RuntimeError, ValueError) as error:
         report["status"] = "failed"
         report["error"] = str(error)
@@ -220,6 +225,7 @@ def main():
     run.add_argument("--checkpoint-dir", type=Path)
     run.add_argument("--data-dir", type=Path)
     run.add_argument("--output", type=Path)
+    run.add_argument("--check-only", action="store_true", help="validate without timing or profiling")
     run.add_argument("--warmup", type=int, default=20)
     run.add_argument("--samples", type=int, default=30, help="samples per timing block")
     run.add_argument("--profile", choices=("auto", "none", "nsys", "ncu", "both"), default="auto")
