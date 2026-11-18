@@ -47,6 +47,8 @@ Use `--checkpoint-dir` or `--data-dir` after the experiment path if either locat
 changed. Paths embedded during capture are relative to the experiment file.
 
 The runner compares stock and edited outputs to eager inference before timing.
+It uses the tolerances saved during capture. Pass `--atol` or `--rtol` to override
+either value. Older experiments without saved tolerances use the original defaults.
 It writes `summary.md`, raw samples in `report.json`, compiler dumps, and effective
 edited sources under a fresh directory in `benchmark-results/`. Pass `--output`
 to choose a different new directory. The default profiler is Nsight Systems when

@@ -11,6 +11,26 @@ from .driver import FIXTURES, worker, write_json
 from .kernels import read_experiment, write_experiment
 from .reporting import launch_profile, write_report
 
+DEFAULT_TOLERANCES = {"atol": 1e-5, "rtol": 1e-4}
+
+
+def resolve_tolerances(args, captured=None):
+    if captured is None:
+        captured = {}
+    if not isinstance(captured, dict):
+        raise ValueError("capture_tolerance must be a dictionary")
+    tolerances = {}
+    for name, default in DEFAULT_TOLERANCES.items():
+        value = getattr(args, name)
+        if value is None:
+            value = captured.get(name, default)
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise ValueError(f"{name} must be a finite, nonnegative number")
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"{name} must be a finite, nonnegative number")
+        tolerances[name] = value
+    return tolerances
+
 
 def worker_command(output, cache, request):
     output.mkdir(parents=True, exist_ok=True)
@@ -48,6 +68,7 @@ def capture(args):
         raise ValueError("Use a .py output file for the experiment")
     if experiment.exists():
         raise ValueError(f"Experiment already exists: {experiment}")
+    tolerances = resolve_tolerances(args)
     output = experiment.with_suffix(".capture")
     output.mkdir(parents=True, exist_ok=False)
     checkpoint_dir, data_dir = args.checkpoint_dir.resolve(), args.data_dir.resolve()
@@ -57,8 +78,7 @@ def capture(args):
         "checkpoint_dir": str(checkpoint_dir),
         "data_dir": str(data_dir),
         "fixture": args.fixture,
-        "atol": args.atol,
-        "rtol": args.rtol,
+        **tolerances,
     }
     stock = output / "stock"
     result = run_worker(stock, output / "cache", request)
@@ -68,6 +88,7 @@ def capture(args):
         **result["workload"],
         "checkpoint_dir": os.path.relpath(checkpoint_dir, experiment.parent),
         "data_dir": os.path.relpath(data_dir, experiment.parent),
+        "capture_tolerance": tolerances,
     }
     wrappers = [path.read_text() for path in sorted(stock.glob("output_code_*.py"))]
     count = write_experiment(experiment, workload, wrappers)
@@ -94,8 +115,7 @@ def compare(args):
         "checkpoint_dir": str(checkpoint_dir.resolve()),
         "data_dir": str(data_dir.resolve()),
         "expected_workload": workload,
-        "atol": args.atol,
-        "rtol": args.rtol,
+        **resolve_tolerances(args, workload.get("capture_tolerance")),
         "warmup": args.warmup,
         "samples": args.samples,
     }
@@ -180,8 +200,8 @@ def main():
     run.add_argument("--samples", type=int, default=30, help="samples per timing block")
     run.add_argument("--profile", choices=("auto", "none", "nsys", "ncu", "both"), default="auto")
     for command in (export, run):
-        command.add_argument("--atol", type=float, default=1e-5)
-        command.add_argument("--rtol", type=float, default=1e-4)
+        command.add_argument("--atol", type=float)
+        command.add_argument("--rtol", type=float)
 
     internal = commands.add_parser("_worker")
     internal.add_argument("request", type=Path)
@@ -191,8 +211,6 @@ def main():
     if args.command == "_worker":
         write_json(args.result, worker(json.loads(args.request.read_text())))
         return
-    if not all(math.isfinite(tol) and tol >= 0 for tol in (args.atol, args.rtol)):
-        parser.error("tolerances must be finite and nonnegative")
     if args.command == "run" and (args.warmup < 1 or args.samples < 1):
         parser.error("warmup and sample counts must be positive")
     try:
