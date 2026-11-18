@@ -5,6 +5,7 @@
 /benchmark-results/
 /captures/
 /maverick-*.log
+/ogb-cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
