@@ -89,6 +89,6 @@ the output directory under `captures/`. Each model gets an editable `.py` file a
 a sibling `.capture/stock/` directory with the original Inductor wrapper. Pass an
 output directory as the third positional argument to choose where they go.
 
-Set `MAVERICK_PYTHON="$MAVERICK_VENV/bin/python"` in your environment before running
-or submitting an edited capture. See the [benchmark guide](../src/benchmark/README.md)
-for running the experiment and collecting traces.
+Keep `MAVERICK_VENV` set when running or submitting an edited capture to reuse the
+same environment. See the [benchmark guide](../src/benchmark/README.md) for running
+the experiment and collecting traces.

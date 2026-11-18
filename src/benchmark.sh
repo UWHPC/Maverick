@@ -26,4 +26,12 @@ case "$1" in
     capture|run|--help|-h) ;;
     *) set -- run "$@" ;;
 esac
-exec "${MAVERICK_PYTHON:-python3}" -m src.benchmark "$@"
+python=${MAVERICK_PYTHON:-}
+if [[ -z $python && -n ${MAVERICK_VENV:-} ]]; then
+    python="$MAVERICK_VENV/bin/python"
+    if [[ ! -x $python ]]; then
+        printf 'Missing Python in MAVERICK_VENV: %s\n' "$python" >&2
+        exit 1
+    fi
+fi
+exec "${python:-python3}" -m src.benchmark "$@"

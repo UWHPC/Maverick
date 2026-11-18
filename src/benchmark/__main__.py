@@ -12,6 +12,7 @@ from .kernels import read_experiment, write_experiment
 from .reporting import launch_profile, write_report
 
 DEFAULT_TOLERANCES = {"atol": 1e-5, "rtol": 1e-4}
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def resolve_tolerances(args, captured=None):
@@ -30,6 +31,26 @@ def resolve_tolerances(args, captured=None):
             raise ValueError(f"{name} must be a finite, nonnegative number")
         tolerances[name] = value
     return tolerances
+
+
+def resolve_checkpoint(experiment, workload, override):
+    if override is not None:
+        candidates = [override.resolve()]
+    else:
+        recorded = (experiment.parent / workload["checkpoint_dir"]).resolve()
+        candidates = [recorded]
+        training_runs = REPO_ROOT / "runs"
+        published_runs = REPO_ROOT / "models" / "model_weights" / "runs"
+        if recorded.is_relative_to(training_runs):
+            candidates.append(published_runs / recorded.relative_to(training_runs))
+        elif recorded.is_relative_to(published_runs):
+            candidates.append(training_runs / recorded.relative_to(published_runs))
+
+    for directory in candidates:
+        if all((directory / name).is_file() for name in ("model.safetensors", "metrics.json")):
+            return directory
+    searched = ", ".join(map(str, candidates))
+    raise ValueError(f"Checkpoint files are missing in {searched}. Pull the weights or use --checkpoint-dir.")
 
 
 def worker_command(output, cache, request):
@@ -107,12 +128,15 @@ def compare(args):
     fixture = workload.get("fixture")
     if fixture not in FIXTURES:
         raise ValueError(f"Choose a graph fixture from {', '.join(FIXTURES)}")
-    checkpoint_dir = args.checkpoint_dir or experiment.parent / workload["checkpoint_dir"]
-    data_dir = args.data_dir or experiment.parent / workload["data_dir"]
+    checkpoint_dir = resolve_checkpoint(experiment, workload, args.checkpoint_dir)
+    data_dir = args.data_dir
+    if data_dir is None:
+        cache = os.environ.get("MAVERICK_DATA_DIR")
+        data_dir = Path(cache) if cache else experiment.parent / workload["data_dir"]
     request = {
         "experiment": str(experiment),
         "fixture": fixture,
-        "checkpoint_dir": str(checkpoint_dir.resolve()),
+        "checkpoint_dir": str(checkpoint_dir),
         "data_dir": str(data_dir.resolve()),
         "expected_workload": workload,
         **resolve_tolerances(args, workload.get("capture_tolerance")),

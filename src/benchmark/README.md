@@ -2,9 +2,9 @@
 
 Use a Linux environment with an NVIDIA CUDA GPU, PyTorch 2.8.0, its matching
 Triton, PyTorch Geometric, OGB, NumPy and Safetensors. The training launcher uses
-this stack. Set `MAVERICK_PYTHON` to the path to the environment's Python if
-`python3` points elsewhere. Install Nsight Systems for launch traces and Nsight
-Compute for optional kernel counters.
+this stack. Set `MAVERICK_VENV` to reuse the environment created by training or
+capture. `MAVERICK_PYTHON` overrides the interpreter. Install Nsight Systems for
+launch traces and Nsight Compute for optional kernel counters.
 
 ## Capture an experiment
 
@@ -43,8 +43,10 @@ sbatch src/benchmark.sh experiment.py
 ```
 
 The script uses the first visible CUDA device. The Slurm job requests one GPU.
-Use `--checkpoint-dir` or `--data-dir` after the experiment path if either location
-changed. Paths embedded during capture are relative to the experiment file.
+Paths embedded during capture are relative to the experiment file. For a missing
+checkpoint under `runs/`, the runner also checks the corresponding path under
+`models/model_weights/runs/`. Set `MAVERICK_DATA_DIR` to reuse one OGB cache across
+experiments. Pass `--checkpoint-dir` or `--data-dir` to override either location.
 
 The runner compares stock and edited outputs to eager inference before timing.
 It uses the tolerances saved during capture. Pass `--atol` or `--rtol` to override
