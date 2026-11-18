@@ -2,6 +2,7 @@
 
 /.maverick/
 /runs/
+/benchmark-results/
 /maverick-*.log
 
 # Byte-compiled / optimized / DLL files

@@ -61,8 +61,9 @@ The training launcher writes checkpoints, metrics, and per-model logs to `runs/`
 by default. Set `MAVERICK_RUN_DIR` to override that location.
 
 Authenticate Git with a Hugging Face credential that can write to the weights
-repository. From the checkout root, pass the completed run directory printed by
-the training launcher to `bash scripts/weights.sh publish RUN_DIR`. The helper
+repository. Set `user.name` and `user.email` for Git on the publishing machine so
+Git can create the weights commit. From the checkout root, pass the completed run
+directory printed by the training launcher to `bash scripts/weights.sh publish RUN_DIR`. The helper
 uploads the checkpoints and metrics using Git Xet. Commit the updated
 `models/model_weights` gitlink in Maverick to pin the published revision for other
 clones.
