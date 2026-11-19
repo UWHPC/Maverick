@@ -180,11 +180,22 @@ def compare(args):
 
         if not args.check_only:
             for index, variant in enumerate((*variants, *reversed(variants)), start=1):
+                block = output / f"timing-{index}-{variant}"
                 result = run_worker(
-                    output / f"timing-{index}-{variant}", output / "cache" / variant,
+                    block, output / "cache" / variant,
                     {**request, "mode": "measure", "variant": variant},
                 )
-                report["timing_blocks"].append({"index": index, "variant": variant})
+                checks = result["correctness"]
+                report["timing_blocks"].append({
+                    "index": index, "variant": variant, "correctness": checks,
+                })
+                if not checks["passed"]:
+                    report["correctness"]["passed"] = False
+                    phase = "after timing" if "after_timing" in checks else "after warm-up"
+                    raise ValueError(
+                        f"{variant} logits failed the eager comparison {phase}. "
+                        f"See {block / 'result.json'}"
+                    )
                 for timing, samples in result["samples"].items():
                     report["samples"][variant][timing].extend(samples)
 

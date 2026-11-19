@@ -327,7 +327,7 @@ def worker(request):
     if request.get("expected_gpu") not in (None, gpu):
         raise RuntimeError("Benchmark workers are running on different GPU devices")
     with torch.inference_mode():
-        if mode in {"capture", "validate"}:
+        if mode in {"capture", "validate", "measure"}:
             eager = model(*inputs)
             torch.cuda.synchronize()
         compiled, logits, timings, names = compile_model(model, inputs, replacements, output)
@@ -340,12 +340,28 @@ def worker(request):
                 torch, logits, eager, request["atol"], request["rtol"]
             )
         else:
-            for _ in range(request["warmup"]):
+            del logits
+            for _ in range(request["warmup"] - 1):
                 compiled(*inputs)
+            warmed = compiled(*inputs)
             torch.cuda.synchronize()
             if mode == "measure":
-                result["samples"] = measure(torch, compiled, inputs, request["samples"])
+                before = check_correctness(
+                    torch, warmed, eager, request["atol"], request["rtol"]
+                )
+                del warmed
+                checks = {"passed": before["passed"], "before_timing": before}
+                result["correctness"] = checks
+                if checks["passed"]:
+                    samples = measure(torch, compiled, inputs, request["samples"])
+                    after = check_correctness(
+                        torch, compiled(*inputs), eager, request["atol"], request["rtol"]
+                    )
+                    checks.update(passed=after["passed"], after_timing=after)
+                    if checks["passed"]:
+                        result["samples"] = samples
             else:
+                del warmed
                 with torch.cuda.nvtx.range(NVTX_RANGE):
                     for _ in range(request["samples"]):
                         compiled(*inputs)

@@ -49,6 +49,8 @@ checkpoint under `runs/`, the runner also checks the corresponding path under
 experiments. Pass `--checkpoint-dir` or `--data-dir` to override either location.
 
 The runner compares stock and edited outputs to eager inference before timing.
+Each measurement worker also checks the same compiled instance after warm-up and
+again after timing. A failed check suppresses speedup reporting.
 It uses the tolerances saved during capture. Pass `--atol` or `--rtol` to override
 either value. Older experiments without saved tolerances use the original defaults.
 Use `--check-only` to compile both variants and check their outputs before spending
