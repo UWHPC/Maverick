@@ -39,7 +39,17 @@ on the test set.
 ./src/benchmark.sh "$experiment"
 ```
 
-On Slurm, use `sbatch src/benchmark.sh "$experiment"`.
+On WATcloud, prefer one full GPU for timing so other jobs cannot share it. Pick
+a GPU type with `gpu:<type>:1` and request enough job-local storage with
+`tmpdisk` in MiB. This example requests one RTX 4090 and 20 GiB of temporary disk.
+
+```sh
+sbatch --gres=gpu:rtx_4090:1,tmpdisk:20480 src/benchmark.sh "$experiment"
+```
+
+Make sure your persistent storage also has room for the OGB cache, compiler
+artifacts, and profiling traces. See the [WATcloud machine list](https://cloud.watonomous.ca/machines)
+and [Slurm guide](https://cloud.watonomous.ca/docs/compute-cluster/slurm).
 
 The launcher writes `summary.md` and `report.json` under `benchmark-results/`.
 
