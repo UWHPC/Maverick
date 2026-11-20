@@ -13,6 +13,13 @@ from .reporting import launch_profile, write_report
 
 DEFAULT_TOLERANCES = {"atol": 1e-5, "rtol": 1e-4}
 REPO_ROOT = Path(__file__).resolve().parents[2]
+CAPTURE_NAMES = ("sage-arxiv", "gcn-arxiv", "gat-arxiv", "sage-products")
+
+
+def experiment_path(value):
+    if value in CAPTURE_NAMES:
+        return REPO_ROOT / "src" / "captures" / f"{value}.py"
+    return Path(value)
 
 
 def resolve_tolerances(args, captured=None):
@@ -232,7 +239,10 @@ def main():
     export.add_argument("--out", type=Path, required=True)
 
     run = commands.add_parser("run", help="compare an experiment against stock Inductor")
-    run.add_argument("experiment", type=Path)
+    run.add_argument(
+        "experiment", nargs="?", type=experiment_path, default="sage-arxiv",
+        help=f".py file or one of {', '.join(CAPTURE_NAMES)} (default: %(default)s)",
+    )
     run.add_argument("--checkpoint-dir", type=Path)
     run.add_argument("--data-dir", type=Path)
     run.add_argument("--output", type=Path)

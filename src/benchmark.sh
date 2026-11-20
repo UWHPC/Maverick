@@ -2,7 +2,7 @@
 #SBATCH --job-name=maverick-benchmark
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:rtx_4090:1,tmpdisk:20480
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=01:00:00
@@ -19,10 +19,7 @@ if [[ ! -f "$repo/src/benchmark/__main__.py" ]]; then
 fi
 export PYTHONPATH="$repo${PYTHONPATH:+:$PYTHONPATH}"
 
-if (( $# == 0 )); then
-    set -- --help
-fi
-case "$1" in
+case "${1:-}" in
     capture|run|--help|-h) ;;
     *) set -- run "$@" ;;
 esac

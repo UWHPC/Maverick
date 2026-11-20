@@ -17,11 +17,13 @@ implementation of that idea. Leave unrelated kernels, model code, and benchmark
 settings alone, even if changing them would improve end-to-end latency. That
 keeps the result attributable to the idea being tested.
 
-Run correctness checks while iterating. From the repo root, substitute your
-experiment file in the following commands.
+Run correctness checks while iterating. From the repo root, pass `sage-arxiv`,
+`gcn-arxiv`, `gat-arxiv`, or `sage-products` to use the matching file in
+`src/captures/`. You can also pass the path to any experiment `.py` file. Omitting
+the experiment selects `sage-arxiv`.
 
 ```sh
-experiment=src/captures/sage-arxiv.py
+experiment=sage-arxiv
 ./src/benchmark.sh "$experiment" --check-only
 ```
 
@@ -29,9 +31,8 @@ On Slurm, use `sbatch src/benchmark.sh "$experiment" --check-only`.
 
 ## Benchmark once or twice
 
-Choose the workload and benchmark settings before looking at timings. Run one
-benchmark per idea on the finished implementation, with at most one repeat to
-confirm the result. Keep the scope and settings fixed across both runs. Use
+Choose the workload and benchmark settings before looking at timings. Avoid
+micro-optimizing the kernels. Keep the scope and settings fixed across both runs. Use
 correctness checks for debugging and avoid tuning against repeated measurements
 on the test set.
 
@@ -39,14 +40,15 @@ on the test set.
 ./src/benchmark.sh "$experiment"
 ```
 
-On WATcloud, prefer one full GPU for timing so other jobs cannot share it. Pick
-a GPU type with `gpu:<type>:1` and request enough job-local storage with
-`tmpdisk` in MiB. This example requests one RTX 4090 and 20 GiB of temporary disk.
+On WATcloud, the launcher requests one full RTX 4090 and 20 GiB of job-local
+storage by default.
 
 ```sh
-sbatch --gres=gpu:rtx_4090:1,tmpdisk:20480 src/benchmark.sh "$experiment"
+sbatch src/benchmark.sh "$experiment"
 ```
 
+To choose another GPU or storage size, pass `--gres=gpu:<type>:1,tmpdisk:<MiB>`
+before the script path. Prefer a full GPU for timing to avoid contention.
 Make sure your persistent storage also has room for the OGB cache, compiler
 artifacts, and profiling traces. See the [WATcloud machine list](https://cloud.watonomous.ca/machines)
 and [Slurm guide](https://cloud.watonomous.ca/docs/compute-cluster/slurm).
