@@ -92,3 +92,23 @@ output directory as the third positional argument to choose where they go.
 Keep `MAVERICK_VENV` set when running or submitting an edited capture to reuse the
 same environment. See the [benchmark guide](../src/benchmark/README.md) for running
 the experiment and collecting traces.
+
+### Refresh the full-arXiv captures
+
+Use the checkpoint run recorded in the three existing captures. From the checkout
+root, submit a job for just those models. Use your existing OGB cache as the second
+path. If you pulled the published checkpoints, set `checkpoint_run` to the matching
+directory under `models/model_weights/runs/`.
+
+```sh
+checkpoint_run=runs/756588-TiByBQHQ
+output="captures/arxiv-contiguous-$(date +%Y%m%d-%H%M%S)"
+sbatch models/capture.sh --arxiv-only "$checkpoint_run" ogb-cache "$output"
+```
+
+The capture checks stock logits against eager inference before it exports each
+experiment. After the job completes, check that all three stock wrappers assert
+shape `(169343, 128)` with strides `(128, 1)`. Replace each arXiv experiment and
+its corresponding `stock/output_code_*.py` under `src/captures/` before using the
+new baseline in benchmarks. The output directory in the example is at the same
+depth as `src/captures/`, so the exported relative paths still resolve after the move.

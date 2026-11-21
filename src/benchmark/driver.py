@@ -72,6 +72,7 @@ def prepare_graph(torch, model, data_dir, dataset, fixture, seed, expected_hash)
                     and len(inputs) == 3
                     and all(isinstance(tensor, torch.Tensor) for tensor in inputs[:2])
                     and (inputs[2] is None or isinstance(inputs[2], torch.Tensor))
+                    and (fixture != "arxiv-full" or inputs[0].is_contiguous())
                     and graph_fingerprint(inputs) == expected_hash
                 ):
                     print(f"Using prepared graph {path}", flush=True)
@@ -93,7 +94,10 @@ def prepare_graph(torch, model, data_dir, dataset, fixture, seed, expected_hash)
         features = data.x
         edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
     edges, edge_weight = model.prepare_edges(edge_index, features.size(0))
-    inputs = (features.float(), edges, edge_weight)
+    features = features.float()
+    if fixture == "arxiv-full":
+        features = features.contiguous()
+    inputs = (features, edges, edge_weight)
     fingerprint = graph_fingerprint(inputs)
     if expected_hash is None or expected_hash == fingerprint:
         try:
@@ -314,7 +318,10 @@ def worker(request):
     if expected is not None:
         different = [key for key, value in identity.items() if expected.get(key) != value]
         if different:
-            raise ValueError(f"Experiment and current workload differ in {', '.join(different)}")
+            message = f"Experiment and current workload differ in {', '.join(different)}"
+            if request["fixture"] == "arxiv-full" and "graph_sha256" in different:
+                message += ". Verify the dataset and recapture older column-major experiments."
+            raise ValueError(message)
 
     replacements = {}
     if request["variant"] == "candidate":

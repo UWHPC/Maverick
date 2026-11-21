@@ -94,9 +94,12 @@ that needs preprocessing would need a separate input preparation and compilation
 path. That path would validate both variants against the same eager graph and
 report preprocessing cost separately from steady-state inference.
 
-Input strides are part of the graph fingerprint. If you change the prepared
-feature layout or the target emits a different kernel body or argument layout,
-capture a new experiment.
+`arxiv-full` makes node features contiguous before fingerprinting and caching
+the graph. The feature strides are `(128, 1)`. Input strides are part of the graph
+fingerprint, so column-major captures need to be regenerated. See the
+[full-arXiv recapture instructions](../../models/README.md#refresh-the-full-arxiv-captures).
+Capture a new experiment if the target emits a different kernel body or argument
+layout.
 
 ## Command-line flags
 

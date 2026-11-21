@@ -11,9 +11,17 @@
 
 set -euo pipefail
 
+workloads=(sage-arxiv gcn-arxiv gat-arxiv)
+if [[ ${1:-} == --arxiv-only ]]; then
+    shift
+else
+    workloads+=(sage-products)
+fi
+
 if [[ ${1:-} == --help || ${1:-} == -h || $# -lt 2 || $# -gt 3 ]]; then
-    printf 'Usage: %s CHECKPOINT_RUN DATA_DIR [OUTPUT_DIR]\n' "$0"
-    printf '%s\n' 'CHECKPOINT_RUN must contain sage-arxiv, gcn-arxiv, gat-arxiv and sage-products.'
+    printf 'Usage: %s [--arxiv-only] CHECKPOINT_RUN DATA_DIR [OUTPUT_DIR]\n' "$0"
+    printf '%s\n' 'Captures sage-arxiv, gcn-arxiv, gat-arxiv and sage-products by default.'
+    printf '%s\n' 'Use --arxiv-only to capture just the three arXiv models.'
     if [[ ${1:-} == --help || ${1:-} == -h ]]; then
         exit 0
     fi
@@ -31,7 +39,6 @@ fi
 
 checkpoint=$1
 data_dir=$2
-workloads=(sage-arxiv gcn-arxiv gat-arxiv sage-products)
 for workload in "${workloads[@]}"; do
     for file in model.safetensors metrics.json; do
         if [[ ! -s "$checkpoint/$workload/$file" ]]; then
@@ -73,4 +80,4 @@ for workload in "${workloads[@]}"; do
     fi
 done
 (( failed == 0 )) || exit 1
-printf 'All four captures complete: %s\n' "$output"
+printf 'Captured %s workloads: %s\n' "${#workloads[@]}" "$output"
