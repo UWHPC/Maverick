@@ -171,7 +171,6 @@ def compare(args):
         "selected_kernels": list(edits),
         "profile": [],
         "timing_blocks": [],
-        "samples": {variant: {"wall_ms": [], "gpu_ms": []} for variant in variants},
         "correctness": {"passed": False},
     }
 
@@ -195,6 +194,7 @@ def compare(args):
                 checks = result["correctness"]
                 report["timing_blocks"].append({
                     "index": index, "variant": variant, "correctness": checks,
+                    "samples": result["samples"] if checks["passed"] else {},
                 })
                 if not checks["passed"]:
                     report["correctness"]["passed"] = False
@@ -203,9 +203,6 @@ def compare(args):
                         f"{variant} logits failed the eager comparison {phase}. "
                         f"See {block / 'result.json'}"
                     )
-                for timing, samples in result["samples"].items():
-                    report["samples"][variant][timing].extend(samples)
-
             profiles = {"auto": ("nsys",), "both": ("nsys", "ncu"), "none": ()}
             for mode in profiles.get(args.profile, (args.profile,)):
                 for variant in variants:

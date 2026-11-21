@@ -27,12 +27,26 @@ From the checkout root, use an existing checkpoint directory with
 The [model README](../../models/README.md#dump-all-four-models-to-triton-on-watcloud)
 shows how to capture all four checkpoints in one WATcloud job.
 
+`products-250k` is a seeded, induced subgraph of `ogbn-products`. The checked-in
+capture has 250,000 nodes and 1,289,372 edge entries, about five per node. Sampling
+reduces connectivity. Label results as `products-250k` so they describe the
+sampled workload. For that capture, two stock logits failed the eager comparison
+under the default tolerances, with a maximum absolute difference of about
+`2.44e-4`. The capture records `atol=3e-4` and the default `rtol=1e-4` so reruns
+use the same correctness check.
+
 Edit the function bodies in `experiment.py` and leave the functions you want to
 substitute in the exported `KERNELS` list. Keep their names, signatures, and
 `@triton.jit` decorators. The runner reads the file as source and uses each
 function body inside the target's original Triton module. That module supplies
 the imported helpers and launch configuration. The experiment stores the expected
 checkpoint, graph, software versions, and original kernel fingerprints.
+
+Capture exports supported Triton pointwise, reduction, and persistent-reduction
+kernels. Inspect the `call` function in `<stem>.capture/stock/output_code_*.py`
+for argument bindings and operations executed elsewhere in the wrapper. A run
+also saves the current device's wrapper under `stock/output_code_*.py` in the
+results directory.
 
 ## Run the experiment
 
@@ -61,9 +75,25 @@ The runner writes `summary.md`, raw samples in `report.json`, compiler dumps,
 and effective edited sources to the results directory. Profiling runs separately
 from timing and retains the profiler reports and logs.
 
-A body edit must preserve its original launch and mutation contract. If a target
-emits a different kernel body or argument layout, capture a new experiment on
-that target. Each experiment runs inference on a fixed graph fixture.
+The report keeps samples and medians for each stock, candidate, candidate, and
+stock timing block. For wall and GPU time separately, the stock noise floor is
+the absolute gap between the stock medians divided by their mean, as a percentage.
+The report compares the mean of the two candidate medians with the mean of the
+two stock medians. A difference at or below the stock noise floor is reported as
+**within noise**. This is an estimate from two stock measurements.
+
+## What an experiment can change
+
+Body edits use the existing COO edge list, argument layout, launch configuration,
+and mutation contract. The current runner cannot supply CSR row offsets, change
+launch-level work partitioning, or reorder edges before a kernel runs. A variant
+that needs preprocessing would need a separate input preparation and compilation
+path. That path would validate both variants against the same eager graph and
+report preprocessing cost separately from steady-state inference.
+
+Input strides are part of the graph fingerprint. If you change the prepared
+feature layout or the target emits a different kernel body or argument layout,
+capture a new experiment.
 
 ## Command-line flags
 

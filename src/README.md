@@ -29,12 +29,13 @@ experiment=sage-arxiv
 
 On Slurm, use `sbatch src/benchmark.sh "$experiment" --check-only`.
 
-## Benchmark once or twice
+## Decide settings first, then benchmark
 
-Choose the workload and benchmark settings before looking at timings. Avoid
-micro-optimizing the kernels. Keep the scope and settings fixed across both runs. Use
-correctness checks for debugging and avoid tuning against repeated measurements
-on the test set.
+Choose the workload and benchmark settings before looking at timings. Run one
+benchmark of the finished idea, with at most one repeat to confirm the result.
+Each run already includes two stock and two candidate timing blocks. Keep the
+scope and settings fixed across runs. Use correctness checks for debugging and
+avoid tuning against repeated measurements on the test set.
 
 ```sh
 ./src/benchmark.sh "$experiment"
