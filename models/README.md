@@ -61,10 +61,54 @@ The training launcher writes checkpoints, metrics, and per-model logs to `runs/`
 by default. Set `MAVERICK_RUN_DIR` to override that location.
 
 Authenticate Git with a Hugging Face credential that can write to the weights
-repository. From the checkout root, pass the completed run directory printed by
-the training launcher to `bash scripts/weights.sh publish RUN_DIR`. The helper
+repository. Set `user.name` and `user.email` for Git on the publishing machine so
+Git can create the weights commit. From the checkout root, pass the completed run
+directory printed by the training launcher to `bash scripts/weights.sh publish RUN_DIR`. The helper
 uploads the checkpoints and metrics using Git Xet. Commit the updated
 `models/model_weights` gitlink in Maverick to pin the published revision for other
 clones.
 
 [Hugging Face Git Xet setup](https://huggingface.co/docs/hub/en/xet/using-xet-storage)
+
+## Dump all four models to Triton on WATcloud
+
+Submit from the checkout root on a login node. Choose a completed four-model
+run under `runs/` or `models/model_weights/runs/`. Set the OGB cache and CUDA venv
+to paths you can write on a persistent WATcloud data mount.
+
+```sh
+export MAVERICK_VENV=/mnt/wato-driveN/your-dir/maverick-venv
+sbatch --nodelist=trpro-slurm2 models/capture.sh \
+  runs/REPLACE_WITH_RUN_ID /mnt/wato-driveN/your-dir/ogb-cache
+```
+
+The job uses one RTX 4090 and prepares the CUDA environment if needed. It captures
+the three arXiv models on the full arXiv graph and Products GraphSAGE on a fixed,
+seeded 250,000-node induced subgraph. The log `maverick-capture-<job-id>.log` prints
+the output directory under `captures/`. Each model gets an editable `.py` file and
+a sibling `.capture/stock/` directory with the original Inductor wrapper. Pass an
+output directory as the third positional argument to choose where they go.
+
+Keep `MAVERICK_VENV` set when running or submitting an edited capture to reuse the
+same environment. See the [benchmark guide](../src/benchmark/README.md) for running
+the experiment and collecting traces.
+
+### Refresh the full-arXiv captures
+
+Use the checkpoint run recorded in the three existing captures. From the checkout
+root, submit a job for just those models. Use your existing OGB cache as the second
+path. If you pulled the published checkpoints, set `checkpoint_run` to the matching
+directory under `models/model_weights/runs/`.
+
+```sh
+checkpoint_run=runs/756588-TiByBQHQ
+output="captures/arxiv-contiguous-$(date +%Y%m%d-%H%M%S)"
+sbatch models/capture.sh --arxiv-only "$checkpoint_run" ogb-cache "$output"
+```
+
+The capture checks stock logits against eager inference before it exports each
+experiment. After the job completes, check that all three stock wrappers assert
+shape `(169343, 128)` with strides `(128, 1)`. Replace each arXiv experiment and
+its corresponding `stock/output_code_*.py` under `src/captures/` before using the
+new baseline in benchmarks. The output directory in the example is at the same
+depth as `src/captures/`, so the exported relative paths still resolve after the move.

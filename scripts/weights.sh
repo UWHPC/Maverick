@@ -24,7 +24,15 @@ weights="$repo/$submodule"
 if [[ ! -e "$weights/.git" ]]; then
     git -C "$repo" submodule update --init -- "$submodule"
 fi
-[[ -z $(git -C "$weights" status --porcelain) ]] || fail 'The weights submodule has local changes.'
+status=$(git -C "$weights" status --porcelain)
+if [[ -n $status ]]; then
+    printf '%s\n' "$status" >&2
+    fail "The weights submodule has local changes in $submodule. Review the paths above."
+fi
+if ! git -C "$weights" var GIT_AUTHOR_IDENT >/dev/null 2>&1 ||
+    ! git -C "$weights" var GIT_COMMITTER_IDENT >/dev/null 2>&1; then
+    fail "Set Git user.name and user.email in $submodule before publishing."
+fi
 git -C "$weights" fetch origin main
 git -C "$weights" merge-base --is-ancestor HEAD FETCH_HEAD \
     || fail 'The weights submodule contains an unpublished commit. Review it before retrying.'
