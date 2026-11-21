@@ -56,7 +56,7 @@ def _signature(function):
     )
 
 
-def _kernels(wrappers):
+def _kernels(wrappers, *, skipped=None):
     seen = set()
     for wrapper in wrappers:
         for statement in ast.walk(ast.parse(wrapper)):
@@ -70,38 +70,40 @@ def _kernels(wrappers):
             if not (
                 isinstance(call, ast.Call)
                 and ast.unparse(call.func) == "async_compile.triton"
-                and len(call.args) >= 2
             ):
                 continue
-            name, source = call.args[:2]
-            if not all(
-                isinstance(x, ast.Constant) and isinstance(x.value, str)
-                for x in (name, source)
-            ):
-                continue
-            compile_name, source = name.value, source.value
             name = statement.targets[0].id
+            if len(call.args) < 2 or not all(
+                isinstance(x, ast.Constant) and isinstance(x.value, str)
+                for x in call.args[:2]
+            ):
+                if skipped is not None:
+                    skipped.append({"name": name, "heuristics": []})
+                continue
+            compile_name, source = (arg.value for arg in call.args[:2])
             if (name, compile_name, source) in seen:
                 continue
             seen.add((name, compile_name, source))
             module = ast.parse(source)
             funcs = [n for n in ast.walk(module) if isinstance(n, ast.FunctionDef)]
-            if len(funcs) != 1 or funcs[0] not in module.body:
-                continue
-            fn = funcs[0]
             heuristics = [
                 d.func.attr
+                for fn in funcs
                 for d in fn.decorator_list
                 if isinstance(d, ast.Call)
                 and isinstance(d.func, ast.Attribute)
                 and ast.unparse(d.func.value) == "triton_heuristics"
             ]
-            if heuristics not in (
-                ["pointwise"],
-                ["reduction"],
-                ["persistent_reduction"],
-            ) or not any(ast.unparse(d) == "triton.jit" for d in fn.decorator_list):
+            if (
+                len(funcs) != 1
+                or funcs[0] not in module.body
+                or heuristics not in (["pointwise"], ["reduction"], ["persistent_reduction"])
+                or not any(ast.unparse(d) == "triton.jit" for d in funcs[0].decorator_list)
+            ):
+                if skipped is not None:
+                    skipped.append({"name": name, "heuristics": heuristics})
                 continue
+            fn = funcs[0]
             # The Python function arguments omit pointer dtypes and specialized
             # argument values. Include those while allowing device metadata and
             # target launch configurations to differ.
@@ -129,8 +131,10 @@ def _kernels(wrappers):
             yield _Kernel(name, compile_name, source, fn, fingerprint)
 
 
-def write_experiment(path: Path, workload: dict, wrappers: list[str]) -> int:
-    kernels = list(_kernels(wrappers))
+def write_experiment(
+    path: Path, workload: dict, wrappers: list[str], *, skipped: list[dict] | None = None
+) -> int:
+    kernels = list(_kernels(wrappers, skipped=skipped))
     if not kernels:
         return 0
     originals = {}

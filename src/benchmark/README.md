@@ -43,10 +43,12 @@ the imported helpers and launch configuration. The experiment stores the expecte
 checkpoint, graph, software versions, and original kernel fingerprints.
 
 Capture exports supported Triton pointwise, reduction, and persistent-reduction
-kernels. Inspect the `call` function in `<stem>.capture/stock/output_code_*.py`
-for argument bindings and operations executed elsewhere in the wrapper. A run
-also saves the current device's wrapper under `stock/output_code_*.py` in the
-results directory.
+kernels. It prints skipped Triton kernel names and their heuristics and records
+them in `<stem>.capture/skipped_kernels.json`. Inspect the `call` function in
+`<stem>.capture/stock/output_code_*.py` for argument bindings and ATen dispatches,
+such as GAT's `scatter_reduce_.two`. The four [checked-in captures](../captures/)
+include their stock wrappers. A run saves the current device's wrapper under
+`stock/output_code_*.py` in the results directory.
 
 ## Run the experiment
 
@@ -76,11 +78,12 @@ and effective edited sources to the results directory. Profiling runs separately
 from timing and retains the profiler reports and logs.
 
 The report keeps samples and medians for each stock, candidate, candidate, and
-stock timing block. For wall and GPU time separately, the stock noise floor is
-the absolute gap between the stock medians divided by their mean, as a percentage.
-The report compares the mean of the two candidate medians with the mean of the
-two stock medians. A difference at or below the stock noise floor is reported as
-**within noise**. This is an estimate from two stock measurements.
+stock timing block. For wall and GPU time separately, it shows the absolute gap
+between each variant's two medians as a percentage of that variant's mean. The
+larger absolute gap in milliseconds is the noise floor. The report compares the
+mean of the candidate medians with the mean of the stock medians. It labels the
+result **within noise** if the difference is at or below the noise floor or the
+stock-to-candidate ratio rounds to `1.000x`.
 
 ## What an experiment can change
 

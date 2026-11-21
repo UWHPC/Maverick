@@ -119,7 +119,12 @@ def capture(args):
         "capture_tolerance": tolerances,
     }
     wrappers = [path.read_text() for path in sorted(stock.glob("output_code_*.py"))]
-    count = write_experiment(experiment, workload, wrappers)
+    skipped = []
+    count = write_experiment(experiment, workload, wrappers, skipped=skipped)
+    write_json(output / "skipped_kernels.json", skipped)
+    for kernel in skipped:
+        heuristics = ", ".join(kernel["heuristics"]) or "unknown"
+        print(f"Skipped Triton kernel {kernel['name']} (heuristics: {heuristics})")
     if not count:
         raise ValueError(f"Inductor produced no supported Triton kernels. See {stock}")
     print(f"Exported {count} kernels to {experiment}")

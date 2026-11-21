@@ -20,6 +20,7 @@ _NSYS_REPORTS = (
 )
 _VARIANTS = ("stock", "candidate")
 _TIMINGS = ("wall_ms", "gpu_ms")
+_SPEEDUP_PRECISION = 3
 
 
 def _diagnostics(result: subprocess.CompletedProcess) -> str:
@@ -154,12 +155,19 @@ def _compare_blocks(blocks: list[dict]) -> dict:
         stock = statistics.mean((stock_first, stock_last))
         candidate = statistics.mean((candidate_first, candidate_last))
         stock_gap = abs(stock_first - stock_last)
-        comparison = {"noise_floor_pct": 100 * (stock_gap / stock)}
-        if abs(stock - candidate) <= stock_gap:
+        candidate_gap = abs(candidate_first - candidate_last)
+        noise_floor = max(stock_gap, candidate_gap)
+        speedup = stock / candidate
+        comparison = {
+            "stock_gap_pct": 100 * (stock_gap / stock),
+            "candidate_gap_pct": 100 * (candidate_gap / candidate),
+            "noise_floor_pct": 100 * (noise_floor / stock),
+        }
+        if abs(stock - candidate) <= noise_floor or round(speedup, _SPEEDUP_PRECISION) == 1:
             comparison["status"] = "within_noise"
         else:
             comparison["status"] = "speedup" if candidate < stock else "regression"
-            comparison["median_speedup"] = stock / candidate
+            comparison["median_speedup"] = speedup
         comparisons[timing] = comparison
     return comparisons
 
@@ -224,15 +232,17 @@ def write_report(output: Path, report: dict) -> None:
         lines.extend(["", "## Candidate vs. stock", ""])
         if comparisons:
             lines.extend([
-                "| Timing | Stock noise floor | Median comparison |",
-                "| --- | ---: | --- |",
+                "| Timing | Stock gap | Candidate gap | Median comparison |",
+                "| --- | ---: | ---: | --- |",
             ])
             for timing, comparison in comparisons.items():
                 result = "within noise"
                 if comparison["status"] != "within_noise":
-                    result = f"{comparison['median_speedup']:.3f}x ({comparison['status']})"
+                    speedup = comparison["median_speedup"]
+                    result = f"{speedup:.{_SPEEDUP_PRECISION}f}x ({comparison['status']})"
                 lines.append(
-                    f"| {timing[:-3]} | {comparison['noise_floor_pct']:.2f}% | {result} |"
+                    f"| {timing[:-3]} | {comparison['stock_gap_pct']:.2f}% "
+                    f"| {comparison['candidate_gap_pct']:.2f}% | {result} |"
                 )
         else:
             lines.append("A speedup requires a passing comparison and complete paired timing samples.")
