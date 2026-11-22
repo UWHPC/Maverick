@@ -9,11 +9,15 @@ case "${1:-}" in
     pull|publish) ;;
     *) printf 'Usage: bash scripts/weights.sh pull | publish RUN_DIR\n'; exit 2 ;;
 esac
-git xet --version >/dev/null || fail 'Install Git Xet and run git xet install first.'
+git lfs version >/dev/null 2>&1 || fail 'Install Git LFS first.'
 if [[ $1 == pull ]]; then
+    # Reading checkpoints only needs Git LFS. Fetch explicitly so this also works
+    # where `git lfs install` has not set up the checkout filter.
     git -C "$repo" submodule update --init -- "$submodule"
+    git -C "$repo/$submodule" lfs pull
     exit
 fi
+git xet --version >/dev/null || fail 'Install Git Xet and run git xet install first.'
 
 run=${2:?Specify the completed training run directory}
 [[ -f "$run/.publishable" ]] || fail 'Use a completed non-smoke training run.'
