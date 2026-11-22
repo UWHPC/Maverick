@@ -33,7 +33,7 @@ async_compile = AsyncCompile()
 empty_strided_p2p = torch._C._distributed_c10d._SymmetricMemory.empty_strided_p2p
 
 
-# kernel path: cache/inductor/f6/cf6zroyddpnrnabvy3n3wkg7bvk4kpdtsddmewfarv3jcxwoj4vn.py
+# kernel path: cache/inductor/qp/cqpz5rpgqzv3wgm4m6nonroauabqdypmqjmm4tmlf23lfmfgztah.py
 # Topologically Sorted Source Nodes: [mul, alpha_src, mul_1, alpha_dst], Original ATen: [aten.mul, aten.sum]
 # Source node to ATen node mapping:
 #   alpha_dst => sum_2
@@ -58,8 +58,8 @@ triton_helpers.set_driver_to_gpu()
     size_hints={'x': 1048576, 'r0_': 8},
     reduction_hint=ReductionHint.INNER,
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'out_ptr1': '*fp32', 'xnumel': 'i32', 'r0_numel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_per_fused_mul_sum_0', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 2, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 10837952, 'r0_': 21676160}}
+    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'out_ptr1': '*fp32', 'xnumel': 'i32', 'r0_numel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_per_fused_mul_sum_0', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 2, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 10837952, 'r0_': 21676160}}
 )
 @triton.jit
 def triton_per_fused_mul_sum_0(in_ptr0, in_ptr1, in_ptr2, out_ptr0, out_ptr1, xnumel, r0_numel, XBLOCK : tl.constexpr):
@@ -95,7 +95,7 @@ def triton_per_fused_mul_sum_0(in_ptr0, in_ptr1, in_ptr2, out_ptr0, out_ptr1, xn
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/fa/cfasfylzrfsvuu4chc3ue6kx2elwda7srfnuf2pwqjdberila2bg.py
+# kernel path: cache/inductor/qj/cqjslxjwzaf5g5mot6vzhqdxtslkzay4yqrbmcupywl32eh2xwcb.py
 # Topologically Sorted Source Nodes: [new_zeros, alpha_j, alpha_i, alpha, alpha_1, src_max], Original ATen: [aten.new_zeros, aten.index_select, aten.add, aten.leaky_relu, aten.scatter_reduce]
 # Source node to ATen node mapping:
 #   alpha => add
@@ -125,8 +125,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 1048576},
     filename=__file__,
-    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_new_zeros_scatter_reduce_1', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 5418976}},
+    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_new_zeros_scatter_reduce_1', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 5418976}},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -141,7 +141,7 @@ def triton_poi_fused_add_index_select_leaky_relu_new_zeros_scatter_reduce_1(out_
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/ex/cexrxntgoshatfhxdp5sii72rvtuncj32mfdjdeptnwfvlpfnb3e.py
+# kernel path: cache/inductor/zv/czvn3s2r4yejk6xt43zbkzyat4ryhxe3yy7y3jkcnbolt7xxnegm.py
 # Topologically Sorted Source Nodes: [alpha_j, alpha_i, alpha, alpha_1], Original ATen: [aten.index_select, aten.add, aten.leaky_relu]
 # Source node to ATen node mapping:
 #   alpha => add
@@ -167,8 +167,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 16777216},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_2', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
+    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_2', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -203,7 +203,7 @@ def triton_poi_fused_add_index_select_leaky_relu_2(in_ptr0, in_ptr1, in_ptr2, ou
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/ez/ceznnfuigfyikrp7rwjibxct4hkpwyq32pc73jziwrw3w3f7jb47.py
+# kernel path: cache/inductor/4g/c4geaxqxsdvrsmhjbcvmsxnbg4vapr422nmzbfvzp5h6jqsltbwa.py
 # Topologically Sorted Source Nodes: [new_zeros_1, index_select_2, out, out_1, scatter_add_], Original ATen: [aten.new_zeros, aten.index_select, aten.sub, aten.exp, aten.scatter_add]
 # Source node to ATen node mapping:
 #   index_select_2 => index_2
@@ -229,8 +229,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 16777216},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_exp_index_select_new_zeros_scatter_add_sub_3', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
+    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_exp_index_select_new_zeros_scatter_add_sub_3', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -257,7 +257,7 @@ def triton_poi_fused_exp_index_select_new_zeros_scatter_add_sub_3(in_ptr0, in_pt
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/p5/cp5u53dhp26gxi3hfselnzeluas4emqzniunwf7bkceukgnv3gzp.py
+# kernel path: cache/inductor/jf/cjfz44yfmlyredvg4pnq72qgsurrc6gapxrxbntots56vzdbmp4y.py
 # Topologically Sorted Source Nodes: [new_zeros_2, x_j, out_2, out_3], Original ATen: [aten.new_zeros, aten.index_select, aten.mul, aten.scatter_add]
 # Source node to ATen node mapping:
 #   new_zeros_2 => full_default_2
@@ -281,8 +281,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 8388608},
     filename=__file__,
-    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_4', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 43351808}},
+    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_4', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 43351808}},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -297,7 +297,7 @@ def triton_poi_fused_index_select_mul_new_zeros_scatter_add_4(out_ptr0, xnumel, 
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/gk/cgkz6g7r7ommgbtvg6a54utkpisykorjbfokvjh7bvkjkj5ou75o.py
+# kernel path: cache/inductor/iq/ciqykww7bmsj2lvsbj23hipr33tgorez4slhbqlpgzkkjyvxesac.py
 # Topologically Sorted Source Nodes: [new_zeros_2, x_j, out_2, out_3], Original ATen: [aten.new_zeros, aten.index_select, aten.mul, aten.scatter_add]
 # Source node to ATen node mapping:
 #   new_zeros_2 => full_default_2
@@ -321,8 +321,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 134217728},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'in_ptr3': '*fp32', 'in_ptr4': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]], (5,): [['tt.divisibility', 16]], (6,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_5', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
+    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'in_ptr3': '*fp32', 'in_ptr4': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]], (5,): [['tt.divisibility', 16]], (6,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_5', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -361,7 +361,7 @@ def triton_poi_fused_index_select_mul_new_zeros_scatter_add_5(in_ptr0, in_ptr1, 
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/ur/curtznfjask45u4arpvhxlk7xrn2roztxuaueis35mkjzrfkvqty.py
+# kernel path: cache/inductor/kl/cklajgwj5225cv7unldo6q33ixi6s7i3t3q76kxpmkh3syaffswy.py
 # Topologically Sorted Source Nodes: [out_5, elu], Original ATen: [aten.add, aten.elu]
 # Source node to ATen node mapping:
 #   elu => expm1, gt_1, mul_4, mul_5, mul_6, where_1
@@ -386,8 +386,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 8388608},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_elu_6', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 43351936}},
+    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_elu_6', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 43351936}},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -412,7 +412,7 @@ def triton_poi_fused_add_elu_6(in_ptr0, in_ptr1, out_ptr0, xnumel, XBLOCK : tl.c
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/em/cemle4wodpt2gffavq3p4i6ymulfub3jm6hcuotegdd6dg65gfsp.py
+# kernel path: cache/inductor/3b/c3b4fiqczmnhtmjqnyftrx6zxs7bwcdzbdn5dorwf5lyi3upisml.py
 # Topologically Sorted Source Nodes: [mul_3, alpha_src_1, mul_4, alpha_dst_1], Original ATen: [aten.mul, aten.sum]
 # Source node to ATen node mapping:
 #   alpha_dst_1 => sum_4
@@ -437,8 +437,8 @@ triton_helpers.set_driver_to_gpu()
     size_hints={'x': 262144, 'r0_': 64},
     reduction_hint=ReductionHint.INNER,
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'out_ptr1': '*fp32', 'xnumel': 'i32', 'r0_numel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_per_fused_mul_sum_7', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 2, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 2709488, 'r0_': 27095200}}
+    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'out_ptr1': '*fp32', 'xnumel': 'i32', 'r0_numel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_per_fused_mul_sum_7', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 2, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 2709488, 'r0_': 27095200}}
 )
 @triton.jit
 def triton_per_fused_mul_sum_7(in_ptr0, in_ptr1, in_ptr2, out_ptr0, out_ptr1, xnumel, r0_numel, XBLOCK : tl.constexpr):
@@ -473,7 +473,7 @@ def triton_per_fused_mul_sum_7(in_ptr0, in_ptr1, in_ptr2, out_ptr0, out_ptr1, xn
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/ei/ceiubwfasqbgeyj7g2f6ldl7pg37gn46erzd7dvt5jmd7u4kza5t.py
+# kernel path: cache/inductor/zu/czuyfgoq232rrjuqozqqzzqlwc6ccdlngfaxslj72onkxvsgvsa6.py
 # Topologically Sorted Source Nodes: [new_zeros_3, alpha_j_1, alpha_i_1, alpha_4, alpha_5, src_max_1], Original ATen: [aten.new_zeros, aten.index_select, aten.add, aten.leaky_relu, aten.scatter_reduce]
 # Source node to ATen node mapping:
 #   alpha_4 => add_3
@@ -503,8 +503,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 262144},
     filename=__file__,
-    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_new_zeros_scatter_reduce_8', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 1354744}},
+    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_new_zeros_scatter_reduce_8', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 1354744}},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -519,7 +519,7 @@ def triton_poi_fused_add_index_select_leaky_relu_new_zeros_scatter_reduce_8(out_
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/bd/cbdssk6bfaigsvaro2o2qgsr56k7wdvopckwalums4ztqx4txzwb.py
+# kernel path: cache/inductor/5o/c5ox4gknfptv7xp42kdsqve4kevpq7qyo62vx4dwybrtcarilgod.py
 # Topologically Sorted Source Nodes: [alpha_j_1, alpha_i_1, alpha_4, alpha_5], Original ATen: [aten.index_select, aten.add, aten.leaky_relu]
 # Source node to ATen node mapping:
 #   alpha_4 => add_3
@@ -545,8 +545,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 4194304},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_9', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
+    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_index_select_leaky_relu_9', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -579,7 +579,7 @@ def triton_poi_fused_add_index_select_leaky_relu_9(in_ptr0, in_ptr1, in_ptr2, ou
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/52/c527vrobn2tf5eroatybq2errrnheuuynyj5px6e3sjx6q4louwg.py
+# kernel path: cache/inductor/q7/cq7ny6bacokotjo4sdoayr4rhzva6lrx6ziwayq72b6bp6enyddf.py
 # Topologically Sorted Source Nodes: [new_zeros_4, index_select_7, out_6, out_7, scatter_add__2], Original ATen: [aten.new_zeros, aten.index_select, aten.sub, aten.exp, aten.scatter_add]
 # Source node to ATen node mapping:
 #   index_select_7 => index_7
@@ -605,8 +605,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 4194304},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_exp_index_select_new_zeros_scatter_add_sub_10', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
+    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_exp_index_select_new_zeros_scatter_add_sub_10', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -631,7 +631,7 @@ def triton_poi_fused_exp_index_select_new_zeros_scatter_add_sub_10(in_ptr0, in_p
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/j6/cj645zxnycsjko75i47l37z4vudwpjzdsomnbx7cvnhq3nbjr22k.py
+# kernel path: cache/inductor/wa/cwagxgdzj7kalocuenkcte5oydkfkiu6fgbtt555xd2hicrva27f.py
 # Topologically Sorted Source Nodes: [new_zeros_5, x_j_1, out_8, out_9], Original ATen: [aten.new_zeros, aten.index_select, aten.mul, aten.scatter_add]
 # Source node to ATen node mapping:
 #   new_zeros_5 => full_default_5
@@ -655,8 +655,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 8388608},
     filename=__file__,
-    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_11', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 54189760}},
+    triton_meta={'signature': {'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_11', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 0, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 54189760}},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -671,7 +671,7 @@ def triton_poi_fused_index_select_mul_new_zeros_scatter_add_11(out_ptr0, xnumel,
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/2l/c2lvcmz3eneqymc4uxmwagfs3bzknljwpsombkolbeg3dvnpd2ik.py
+# kernel path: cache/inductor/kb/ckbv3vu2zcygvfs5v7vp2wkra37gviasi366nj7c4kifqfkuthue.py
 # Topologically Sorted Source Nodes: [new_zeros_5, x_j_1, out_8, out_9], Original ATen: [aten.new_zeros, aten.index_select, aten.mul, aten.scatter_add]
 # Source node to ATen node mapping:
 #   new_zeros_5 => full_default_5
@@ -695,8 +695,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 134217728},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'in_ptr3': '*fp32', 'in_ptr4': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]], (5,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_12', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
+    triton_meta={'signature': {'in_ptr0': '*i64', 'in_ptr1': '*fp32', 'in_ptr2': '*fp32', 'in_ptr3': '*fp32', 'in_ptr4': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]], (3,): [['tt.divisibility', 16]], (4,): [['tt.divisibility', 16]], (5,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_index_select_mul_new_zeros_scatter_add_12', 'mutated_arg_names': ['out_ptr0'], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 3, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -733,7 +733,7 @@ def triton_poi_fused_index_select_mul_new_zeros_scatter_add_12(in_ptr0, in_ptr1,
 ''', device_str='cuda')
 
 
-# kernel path: cache/inductor/mh/cmhd3e5yv3odwpt3sqzfnib65mmxqfr73e3c2jlpdm5yqxw35p5o.py
+# kernel path: cache/inductor/u4/cu4ognn65oj4bhmjomswepfaw24gcu6y73666imkvpxm3kypkfeq.py
 # Topologically Sorted Source Nodes: [out_10, out_11], Original ATen: [aten.mean, aten.add]
 # Source node to ATen node mapping:
 #   out_10 => mean
@@ -753,8 +753,8 @@ triton_helpers.set_driver_to_gpu()
 @triton_heuristics.pointwise(
     size_hints={'x': 8388608},
     filename=__file__,
-    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=82, cc=86, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]]}]},
-    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_mean_13', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': '6AC1F511B5EF3A132B4136C5E897229092E0B0F9B95B85EBDE51C7804BB0E3A0', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 54189920}},
+    triton_meta={'signature': {'in_ptr0': '*fp32', 'in_ptr1': '*fp32', 'out_ptr0': '*fp32', 'xnumel': 'i32', 'XBLOCK': 'constexpr'}, 'device': DeviceProperties(type='cuda', index=0, multi_processor_count=128, cc=89, major=8, regs_per_multiprocessor=65536, max_threads_per_multi_processor=1536, warp_size=32), 'constants': {}, 'configs': [{(0,): [['tt.divisibility', 16]], (1,): [['tt.divisibility', 16]], (2,): [['tt.divisibility', 16]]}]},
+    inductor_meta={'grid_type': 'Grid1D', 'autotune_hints': set(), 'kernel_name': 'triton_poi_fused_add_mean_13', 'mutated_arg_names': [], 'optimize_mem': True, 'no_x_dim': False, 'num_load': 2, 'num_reduction': 0, 'backend_hash': 'F9D44C12085C08D59390B12815E1013D8AA3EBA5E174AFD175306678DA24B0E1', 'are_deterministic_algorithms_enabled': False, 'assert_indirect_indexing': True, 'autotune_local_cache': True, 'autotune_pointwise': True, 'autotune_remote_cache': False, 'force_disable_caches': False, 'dynamic_scale_rblock': True, 'max_autotune': False, 'max_autotune_pointwise': False, 'min_split_scan_rblock': 256, 'spill_threshold': 16, 'store_cubin': False, 'tiling_scores': {'x': 54189920}},
     min_elem_per_thread=0
 )
 @triton.jit
@@ -780,7 +780,7 @@ del async_compile
 def call(args):
     arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8_1, arg9_1 = args
     args.clear()
-    assert_size_stride(arg0_1, (169343, 128), (1, 169343))
+    assert_size_stride(arg0_1, (169343, 128), (128, 1))
     assert_size_stride(arg1_1, (32, 128), (128, 1))
     assert_size_stride(arg2_1, (1, 4, 8), (32, 8, 1))
     assert_size_stride(arg3_1, (1, 4, 8), (32, 8, 1))
@@ -889,7 +889,7 @@ def call(args):
 def benchmark_compiled_module(times=10, repeat=10):
     from torch._dynamo.testing import rand_strided
     from torch._inductor.utils import print_performance
-    arg0_1 = rand_strided((169343, 128), (1, 169343), device='cuda:0', dtype=torch.float32)
+    arg0_1 = rand_strided((169343, 128), (128, 1), device='cuda:0', dtype=torch.float32)
     arg1_1 = rand_strided((32, 128), (128, 1), device='cuda:0', dtype=torch.float32)
     arg2_1 = rand_strided((1, 4, 8), (32, 8, 1), device='cuda:0', dtype=torch.float32)
     arg3_1 = rand_strided((1, 4, 8), (32, 8, 1), device='cuda:0', dtype=torch.float32)

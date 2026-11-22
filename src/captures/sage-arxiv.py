@@ -17,13 +17,14 @@ WORKLOAD = {'fixture': 'arxiv-full',
            'attention_heads': 4,
            'attention_head_width': 8},
  'checkpoint_sha256': 'ab6cb665601fcd94b4cb43c43eabe914d0b00af902b64c1731ad6e27d55f62a3',
- 'graph_sha256': '2afa99103d7100e5b1793b60fd18f4519216d3c5d8b2b20c197b6a153dee4b44',
+ 'graph_sha256': '4a39a3d412351e3858f6e394828b65777095566b9de38d5643dadfc979221e27',
  'versions': {'torch': '2.8.0+cu128',
               'pyg': '2.7.0',
               'triton': '3.4.0',
               'cuda': '12.8'},
  'checkpoint_dir': '../../runs/756588-TiByBQHQ/sage-arxiv',
- 'data_dir': '../../ogb-cache'}
+ 'data_dir': '../../ogb-cache',
+ 'capture_tolerance': {'atol': 1e-05, 'rtol': 0.0001}}
 
 @triton.jit
 def triton_poi_fused_index_select_new_zeros_scatter_add_0(out_ptr0, xnumel, XBLOCK: tl.constexpr):
@@ -51,7 +52,7 @@ def triton_poi_fused_index_select_new_zeros_scatter_add_1(in_ptr0, in_ptr1, out_
     tmp5 = tmp2 < 0
     tmp6 = tl.where(tmp5, tmp4, tmp2)
     tl.device_assert(((0 <= tmp6) & (tmp6 < 169343)) | ~(xmask), "index out of bounds: 0 <= tmp6 < 169343")
-    tmp8 = tl.load(in_ptr1 + (tmp6 + 169343*x0), xmask, eviction_policy='evict_last')
+    tmp8 = tl.load(in_ptr1 + (x0 + 128*tmp6), xmask)
     tl.atomic_add(out_ptr0 + (x0 + 128*tmp0), tmp8, xmask, sem='relaxed')
 
 @triton.jit
@@ -164,7 +165,7 @@ _ORIGINALS = {'triton_poi_fused_index_select_new_zeros_scatter_add_0': ('4e5c493
                                                            'xnumel, XBLOCK: '
                                                            "tl.constexpr', "
                                                            'None, None)'),
- 'triton_poi_fused_index_select_new_zeros_scatter_add_1': ('00d60ee86cc4bfab50c13d7d3124d6dfddcfebf3d062c6c2416e1e427499ba5a',
+ 'triton_poi_fused_index_select_new_zeros_scatter_add_1': ('a483000e6152c20f82bdd4637e415efda3d5e482c4ec25d151c6c43f6ef9a6fb',
                                                            "('in_ptr0, "
                                                            'in_ptr1, out_ptr0, '
                                                            'xnumel, XBLOCK: '
