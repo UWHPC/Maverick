@@ -83,10 +83,14 @@ A successful job ends with a `Summary:` line that names a folder under
 sbatch src/benchmark.sh sage-arxiv
 ```
 
-The job requests one full RTX 4090. Results go to
-`benchmark-results/<experiment>-<id>/`. Open `summary.md` there first. It lists
-the median time for each of the four timing blocks, the comparison between stock
-and candidate, and the correctness check. `report.json` holds the raw samples.
+The launcher requests one full RTX 4090. Always time on a full GPU. Do not pass
+a `shard:` request for a benchmark. A shard shares the GPU with other jobs, so
+its timings cannot be compared.
+
+Results go to `benchmark-results/<experiment>-<id>/`. Open `summary.md` there
+first. It lists the median time for each of the four timing blocks, the
+comparison between stock and candidate, and the correctness check. `report.json`
+holds the raw samples.
 
 Run this once before you change anything. The experiment file is unedited, so
 stock and candidate are the same code and the result should read **within noise**.
@@ -126,10 +130,10 @@ describes what an edit may and may not change.
 - **Decide the settings before you look at timings.** Pick the model, graph and
   flags, run once, and repeat at most once to confirm. Rerunning until the number
   looks good measures your patience, not your kernel.
-- **Expect noise on the shared 4090.** Other jobs run on the same node. Repeat
-  blocks of identical code have differed by up to about 5% there. Treat a
-  difference of that size as no difference, even when the report labels it a
-  speedup or a regression.
+- **Expect noise on the shared node.** A full GPU is yours alone, but the node's
+  CPUs and memory are shared with other jobs. Repeat blocks of identical code
+  have differed by up to about 5% there. Treat a difference of that size as no
+  difference, even when the report labels it a speedup or a regression.
 - **Report everything.** Include regressions and results that showed nothing.
   They tell the next person what not to try.
 
