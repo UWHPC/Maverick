@@ -17,13 +17,14 @@ WORKLOAD = {'fixture': 'arxiv-full',
            'attention_heads': 4,
            'attention_head_width': 8},
  'checkpoint_sha256': '3b32979282ec062abf0a5be1368e5853857717f1e9c0084d30f1c215fe95c433',
- 'graph_sha256': '44dbb0b0adf71a4fe085fcb58a338263262e3c3cf4a6f11df3ec9edbe778d558',
+ 'graph_sha256': '488b73e7fc983ff8e49876273b102e4fb2bbdbb44c99bcddd0d7e0758ea00503',
  'versions': {'torch': '2.8.0+cu128',
               'pyg': '2.7.0',
               'triton': '3.4.0',
               'cuda': '12.8'},
  'checkpoint_dir': '../../runs/756588-TiByBQHQ/gcn-arxiv',
- 'data_dir': '../../ogb-cache'}
+ 'data_dir': '../../ogb-cache',
+ 'capture_tolerance': {'atol': 1e-05, 'rtol': 0.0001}}
 
 @triton.jit
 def triton_poi_fused_index_select_mul_new_zeros_scatter_add_0(out_ptr0, xnumel, XBLOCK: tl.constexpr):

@@ -19,13 +19,14 @@ WORKLOAD = {'fixture': 'arxiv-full',
            'attention_heads': 4,
            'attention_head_width': 8},
  'checkpoint_sha256': 'baa8dfac3791172bbfb12155e0b067d83ec2e6228c94d55ab41e1e84b28294f7',
- 'graph_sha256': '7f4f8c8b8bbe795cf5c16a1baa170c29529ba826d659c30af62d657968744f40',
+ 'graph_sha256': '31bfd78f2d3d9acfeb540d4e3cc69a8846a408a026fcb357cefadaf0b9af0567',
  'versions': {'torch': '2.8.0+cu128',
               'pyg': '2.7.0',
               'triton': '3.4.0',
               'cuda': '12.8'},
  'checkpoint_dir': '../../runs/756588-TiByBQHQ/gat-arxiv',
- 'data_dir': '../../ogb-cache'}
+ 'data_dir': '../../ogb-cache',
+ 'capture_tolerance': {'atol': 1e-05, 'rtol': 0.0001}}
 
 @triton.jit
 def triton_per_fused_mul_sum_0(in_ptr0, in_ptr1, in_ptr2, out_ptr0, out_ptr1, xnumel, r0_numel, XBLOCK: tl.constexpr):
