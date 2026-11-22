@@ -6,11 +6,10 @@ checkpoints or training from scratch.
 
 ## Pull checkpoints
 
-Install Git LFS and Git Xet, then run these commands from the Maverick checkout root.
+Install Git LFS, then run this command from the Maverick checkout root. Git Xet is
+only needed to publish.
 
 ```sh
-git lfs install
-git xet install
 bash scripts/weights.sh pull
 ```
 
@@ -60,8 +59,8 @@ predictions with all neighbors, one layer at a time.
 The training launcher writes checkpoints, metrics, and per-model logs to `runs/`
 by default. Set `MAVERICK_RUN_DIR` to override that location.
 
-Authenticate Git with a Hugging Face credential that can write to the weights
-repository. Set `user.name` and `user.email` for Git on the publishing machine so
+Install Git Xet and run `git xet install`. Authenticate Git with a Hugging Face
+credential that can write to the weights repository. Set `user.name` and `user.email` for Git on the publishing machine so
 Git can create the weights commit. From the checkout root, pass the completed run
 directory printed by the training launcher to `bash scripts/weights.sh publish RUN_DIR`. The helper
 uploads the checkpoints and metrics using Git Xet. Commit the updated

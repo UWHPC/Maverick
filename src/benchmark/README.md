@@ -3,7 +3,8 @@
 Use a Linux environment with an NVIDIA CUDA GPU, PyTorch 2.8.0, its matching
 Triton, PyTorch Geometric, OGB, NumPy and Safetensors. The training launcher uses
 this stack. Set `MAVERICK_VENV` to reuse the environment created by training or
-capture. `MAVERICK_PYTHON` overrides the interpreter.
+capture. `MAVERICK_PYTHON` overrides the interpreter. For a step-by-step first
+run on WATcloud, see the [WATcloud walkthrough](../../docs/watcloud.md).
 
 For profiling, use Nsight Systems **2024.6.2.225** (`nsys`) for launch traces and
 Nsight Compute **2025.1.0.14** (`ncu`) for optional kernel counters. Put the tools
